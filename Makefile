@@ -1,14 +1,10 @@
-all: output/console.js
+all: output/debian.js
 
 run: all
-	./js output/console.js
+	xdotool search 'JS Debian - Mozilla Firefox' | xargs -I: xdotool key --window : F5
 
-output/console.js: build/system.js build/console.js | output
-	if which js-beautify >/dev/null 2>&1; then \
-		cat $^ | js-beautify -i > $@; \
-	else \
-		cat $^ > $@; \
-	fi
+output/debian.js: build/system.js build/debian.js | output
+	cat $^ > $@
 
 build/%.js: src/%.js | build
 	cpp -nostdinc -undef -P $< -o $@
