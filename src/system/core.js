@@ -1,7 +1,9 @@
 #include "constants.inc"
 
-#define INT(x) (x)|0
-#define DBL(x) +(x)
+#define INT(x) ((x)|0)
+#define S32(x) ((x)|0)
+#define U32(x) ((x)>>>0)
+#define DBL(x) (+(x))
 
 #define PARAM_INT(x) x = x|0
 #define PARAM_DBL(x) x = +x
@@ -51,39 +53,42 @@ function Core (stdlib, foreign, heap)
 {
 	"use asm";
 
-	var sview = new stdlib.Int32Array (heap);
-	var uview = new stdlib.Uint32Array (heap);
+	var wordView = new stdlib.Int32Array (heap);
+	var byteView = new stdlib.Uint8Array (heap);
 
-	var memoffset = INT (foreign.memoffset);
+	var memoryOffset = INT (foreign.memoryOffset);
+	var memorySize = INT (foreign.memorySize);
+	var memoryError = 0;
+
 	var log = foreign.log;
 	var bail = foreign.bail;
 
-	var memerr = 0;
-
 	function reset ()
 	{
+		// reset CPSR (don't use setCPSR because current mode is invalid)
+		wordView[ADDR_CPSR >> 2] = MODE_svc | PSR_I | PSR_F;
+
 		// reset working registers
-		setCPSR (MODE_svc | PSR_I | PSR_F);
 		setRegister (REG_PC, 0x0);
 	}
 
 	function getPC ()
 	{
-		return INT (sview[REG_PC]);
+		return INT (wordView[REG_PC]);
 	}
 
 	function setPC (value)
 	{
 		PARAM_INT (value);
-		sview[REG_PC] = value;
+		wordView[REG_PC] = value;
 	}
 
 	function getRegister (reg)
 	{
 		PARAM_INT (reg);
-		var value = 0, pcoffset = 0; /* pcoffset = 8 if reg is PC */
-		value = INT (sview[reg << 2 >> 2]);
-		pcoffset = ((reg + 1) >> 1) & 0x08;
+		var value = 0, pcoffset = 0; /* pcoffset = 4 if reg is PC */
+		value = INT (wordView[reg << 2 >> 2]);
+		pcoffset = ((reg + 1) >> 2) & 0x04;
 		return INT (value + pcoffset);
 	}
 
@@ -91,24 +96,42 @@ function Core (stdlib, foreign, heap)
 	{
 		PARAM_INT (reg);
 		PARAM_INT (value);
-		sview[reg << 2 >> 2] = value;
+		wordView[reg << 2 >> 2] = value;
 	}
 
 	function getCPSR ()
 	{
-		return INT (sview[ADDR_CPSR >> 2]);
+		return INT (wordView[ADDR_CPSR >> 2]);
 	}
 
 	function setCPSR (value)
 	{
 		PARAM_INT (value);
-		sview[ADDR_CPSR >> 2] = value;
+
+		var oldMode = 0;
+		var newMode = 0;
+
+		oldMode = getCPSR () & PSR_M;
+		newMode = value & PSR_M;
+		wordView[ADDR_CPSR >> 2] = value;
+
+		if (S32 (oldMode) != S32 (newMode))
+		{
+			// copy current to old
+			log (LOG_ID, 12334, LOG_HEX, INT (oldMode), LOG_HEX, INT (newMode));
+			bail (13551345);
+		}
+	}
+
+	function isPrivileged ()
+	{
+		return INT ((getCPSR () & PSR_M) != MODE_usr);
 	}
 
 	function memoryAddressToHeapOffset (addr)
 	{
 		PARAM_INT (addr);
-		return INT (addr - memoffset + MEMORY_START);
+		return INT (addr - memoryOffset + MEMORY_START);
 	}
 
 	function readWord (addr)
@@ -124,7 +147,9 @@ function Core (stdlib, foreign, heap)
 
 		// TODO: MMU
 		offset = memoryAddressToHeapOffset (addr);
-		return INT (sview[offset >> 2]);
+		if (U32 (offset) >= U32 (memorySize))
+			bail (2138);
+		return INT (wordView[offset >> 2]);
 	}
 
 	function writeWord (addr, value)
@@ -132,12 +157,17 @@ function Core (stdlib, foreign, heap)
 		PARAM_INT (addr);
 		PARAM_INT (value);
 
+		var offset = 0;
+
 		// TODO: unaligned accesses
 		if ((addr & 0x03) != 0)
 			bail (2137);
 
 		// TODO: MMU
-		bail (54);
+		offset = memoryAddressToHeapOffset (addr);
+		if (U32 (offset) >= U32 (memorySize))
+			bail (2138);
+		wordView[offset >> 2] = value;
 	}
 
 	function tick (numInstructions)
@@ -150,17 +180,18 @@ function Core (stdlib, foreign, heap)
 
 		for (;numInstructions; numInstructions = INT (numInstructions - 1))
 		{
-			// get program counter
+			// get and advance program counter
 			pc = getPC ();
+			setPC (INT (pc + 4));
 
 			// read instruction at PC
 			inst = readWord (pc);
-			if (memerr)
+			if (memoryError)
 				bail (12980); // prefetch abort
 
 			// execute the instruction
 			stat = execute (inst);
-			if (INT (stat) != STAT_OK)
+			if (S32 (stat) != STAT_OK)
 				bail (13515); // some stupid error occurred
 		}
 	}
@@ -169,19 +200,53 @@ function Core (stdlib, foreign, heap)
 	{
 		PARAM_INT (inst);
 
-		// check condition field
-		log (LOG_HEX, INT (inst));
-		bail (3134);
+		var cpsr = 0;
+		var condflag = 0;
 
+		// setup condition flag
+		cpsr = getCPSR ();
+		switch ((inst >>> 28) & 0x0F)
+		{
+			case 0: condflag =  cpsr & PSR_Z; break;
+			case 1: condflag = ~cpsr & PSR_Z; break;
+			case 2: condflag =  cpsr & PSR_C; break;
+			case 3: condflag = ~cpsr & PSR_C; break;
+			case 4: condflag =  cpsr & PSR_N ; break;
+			case 5: condflag = ~cpsr & PSR_N; break;
+			case 6: condflag =  cpsr & PSR_V ; break;
+			case 7: condflag = ~cpsr & PSR_V; break;
+			case 8: condflag = (~cpsr &  (cpsr << 1)) & PSR_Z; break;
+			case 9: condflag = ( cpsr | ~(cpsr << 1)) & PSR_Z; break;
+			case 10: condflag = ~(cpsr ^ (cpsr << 3)) & PSR_N; break;
+			case 11: condflag =  (cpsr ^ (cpsr << 3)) & PSR_N; break;
+			case 12: condflag = ((~cpsr << 1) & ~(cpsr ^ (cpsr << 3))) & PSR_N; break;
+			case 13: condflag = (( cpsr << 1) |  (cpsr ^ (cpsr << 3))) & PSR_N; break;
+			case 14: condflag = 1; break;
+			case 15: return STAT_UND;
+		}
+
+		// execute if necessary
+		if (condflag)
+			return subexecute (inst);
+		else
+			return STAT_OK;
+
+		// should not reach here, only for annotation
 		return STAT_OK;
 	}
 
+#define DECODER_FUNCTION subexecute
+#include "decoder.js"
+#undef DECODER_FUNCTION
+
+#include "instructions.js"
+
 	return {
-		reset: reset,
 		getPC: getPC,
 		setPC: setPC,
 		getRegister: getRegister,
 		setRegister: setRegister,
+		reset: reset,
 		tick: tick
 	};
 }

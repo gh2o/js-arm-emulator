@@ -1,4 +1,5 @@
 #include "common.inc"
+#include "system/system.inc"
 
 #define CORE_MEMORY 4096
 #define MEMORY_START (CORE_MEMORY)
@@ -63,7 +64,8 @@ System.prototype.needSwap = (function () {
 
 System.prototype.createForeign = function () {
 	return {
-		memoffset: this.options.memoryOffset,
+		memorySize: this.options.memorySize,
+		memoryOffset: this.options.memoryOffset,
 		log: function () {
 			var nargs = [];
 			for (var i = 0; i < arguments.length; i += 2)
