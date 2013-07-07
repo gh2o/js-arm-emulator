@@ -1,4 +1,5 @@
 .*.swp
+.depends
 /js
 /build/
 /output/

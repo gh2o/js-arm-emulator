@@ -1,7 +1,12 @@
 #include "common.inc"
 
-#define CORE_MEMORY 1024
+#define CORE_MEMORY 4096
 #define MEMORY_START (CORE_MEMORY)
+
+#define LOG_ID (0)
+#define LOG_HEX (1)
+#define LOG_SIGNED (2)
+#define LOG_UNSIGNED (3)
 
 function System (options)
 {
@@ -11,31 +16,43 @@ function System (options)
 
 	DEFAULT_OPTION (options, {});
 	DEFAULT_OPTION (options.memoryOffset, 0x10000000);
-	DEFAULT_OPTION (options.memorySize, 32 * 1024 * 1024);
+	DEFAULT_OPTION (options.memorySize, 32 * 1024 * 1024 - MEMORY_START);
 	this.options = options;
 
 	/*****************************************
 	 * OPTION CHECKING                       *
 	 *****************************************/
 
-	// memory offset and size must be page aligned
 	if ((options.memoryOffset & 0x0FFF) != 0)
-		throw new Error ("memoryOffset must be aligned");
-	if ((options.memorySize & 0x0FFF) != 0)
-		throw new Error ("memorySize must be aligned");
+		throw new Error ("memoryOffset must be page aligned");
+
+	var heapSize = MEMORY_START + options.memorySize;
+	if ((heapSize & (heapSize - 1)) != 0)
+		throw new Error ("MEMORY_START + memorySize must be power of two");
 
 	/*****************************************
 	 * PREPARATIONS                          *
 	 *****************************************/
 
-	this.heap = new ArrayBuffer (MEMORY_START + options.memorySize);
+	this.heap = new ArrayBuffer (heapSize);
 
 	/*****************************************
 	 * BRING IN THE CORE                     *
 	 *****************************************/
 
 	#include "system/core.js"
-	this.core = Core (window, {}, this.heap);
+	this.core = Core (window, this.createForeign (), this.heap);
+
+	/*****************************************
+	 * EXPORT CORE FUNCTIONS                 *
+	 *****************************************/
+
+	this.reset = this.core.reset;
+	this.getPC = this.core.getPC;
+	this.setPC = this.core.setPC;
+	this.getRegister = this.core.getRegister;
+	this.setRegister = this.core.setRegister;
+	this.tick = this.core.tick;
 }
 
 System.prototype.needSwap = (function () {
@@ -44,10 +61,48 @@ System.prototype.needSwap = (function () {
 	return 0xCAFEBABE === new Uint32Array (arr.buffer)[0];
 })();
 
+System.prototype.createForeign = function () {
+	return {
+		memoffset: this.options.memoryOffset,
+		log: function () {
+			var nargs = [];
+			for (var i = 0; i < arguments.length; i += 2)
+			{
+				var k = arguments[i];
+				var v = arguments[i+1];
+				var a;
+				switch (k)
+				{
+					case LOG_ID:
+						a = "<" + v + ">";
+						break;
+					case LOG_HEX:
+						a = (v >>> 0).toString (16);
+						while (a.length < 8)
+							a = "0" + a;
+						a = "0x" + a;
+						break;
+					case LOG_SIGNED:
+						a = (v >> 0).toString (10);
+						break;
+					case LOG_UNSIGNED:
+						a = (v >>> 0).toString (10);
+						break;
+				}
+				nargs.push (a)
+			}
+			console.log.apply (console, nargs);
+		},
+		bail: function (code) {
+			throw new Error ("Bail! (" + code + ")");
+		}
+	};
+};
+
 System.prototype.loadImage = function (image, address) {
 
 	// create source buffer
-	var source = new Int32Array (image);
+	var source = new Int32Array (image.slice (0));
 
 	// swap bytes if needed
 	if (this.needSwap)

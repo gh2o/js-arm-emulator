@@ -1,6 +1,9 @@
+#include "common.inc"
+
 var neededFiles = {
 	kernel: {path: "../resources/kernelimage"},
 };
+var tickIntervalID = null;
 
 initialize ();
 
@@ -44,7 +47,25 @@ function initialize ()
 function bootstrap ()
 {
 	// copy kernel into memory
-	// assume that the kernel's size will be divisble by 4
 	system = new System ();
 	system.loadImage (neededFiles.kernel.xhr.response, 0x10008000);
+
+	// do system reset
+	system.reset ();
+	system.setPC (0x10008000);
+
+	// start CPU intervals
+	tickIntervalID = setInterval (function () {
+		try {
+			tick ();
+		} catch (e) {
+			clearInterval (tickIntervalID);
+			throw e;
+		}
+	}, 100);
+}
+
+function tick ()
+{
+	system.tick (100);
 }
