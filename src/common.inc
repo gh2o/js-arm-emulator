@@ -31,3 +31,6 @@
 #define MODE_abt (0x17)
 #define MODE_und (0x1b)
 #define MODE_sys (0x1f)
+
+#define CONCAT_TOKENS_(x,y) x##y
+#define CONCAT_TOKENS(x,y) CONCAT_TOKENS_(x,y)

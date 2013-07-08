@@ -63,6 +63,7 @@ System.prototype.needSwap = (function () {
 })();
 
 System.prototype.createForeign = function () {
+	var system = this;
 	return {
 		memorySize: this.options.memorySize,
 		memoryOffset: this.options.memoryOffset,
@@ -79,10 +80,7 @@ System.prototype.createForeign = function () {
 						a = "<" + v + ">";
 						break;
 					case LOG_HEX:
-						a = (v >>> 0).toString (16);
-						while (a.length < 8)
-							a = "0" + a;
-						a = "0x" + a;
+						a = formatHex (v);
 						break;
 					case LOG_SIGNED:
 						a = (v >> 0).toString (10);
@@ -96,6 +94,12 @@ System.prototype.createForeign = function () {
 			console.log.apply (console, nargs);
 		},
 		bail: function (code) {
+			for (var i = 0; i < 16; i++)
+			{
+				var r = system.getRegister (i);
+				console.error ("=== R" + i + ": " + formatHex (r));
+			}
+			console.error ("=== PC: " + formatHex (system.getPC () - 4));
 			throw new Error ("Bail! (" + code + ")");
 		}
 	};

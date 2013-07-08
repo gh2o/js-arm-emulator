@@ -6,7 +6,7 @@ run: all
 validate: all
 	./js -c output/debian.js
 
-output/debian.js: build/system.js build/debian.js | output
+output/debian.js: build/util.js build/system.js build/debian.js | output
 	cat $^ > $@
 
 build/%.js: src/%.js | build
