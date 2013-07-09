@@ -148,7 +148,10 @@ function Core (stdlib, foreign, heap)
 		// TODO: MMU
 		offset = memoryAddressToHeapOffset (addr);
 		if (U32 (offset) >= U32 (memorySize))
+		{
+			log (LOG_ID, 2138, LOG_HEX, S32 (addr), LOG_HEX, S32 (offset));
 			bail (2138);
+		}
 		return INT (wordView[offset >> 2]);
 	}
 
@@ -166,7 +169,7 @@ function Core (stdlib, foreign, heap)
 		// TODO: MMU
 		offset = memoryAddressToHeapOffset (addr);
 		if (U32 (offset) >= U32 (memorySize))
-			bail (2138);
+			bail (2139);
 		wordView[offset >> 2] = value;
 	}
 
@@ -246,6 +249,8 @@ function Core (stdlib, foreign, heap)
 		setPC: setPC,
 		getRegister: getRegister,
 		setRegister: setRegister,
+		getCPSR: getCPSR,
+		setCPSR: setCPSR,
 		reset: reset,
 		tick: tick
 	};

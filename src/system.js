@@ -53,6 +53,8 @@ function System (options)
 	this.setPC = this.core.setPC;
 	this.getRegister = this.core.getRegister;
 	this.setRegister = this.core.setRegister;
+	this.getCPSR = this.core.getCPSR;
+	this.setCPSR = this.core.setCPSR;
 	this.tick = this.core.tick;
 }
 
@@ -100,6 +102,7 @@ System.prototype.createForeign = function () {
 				console.error ("=== R" + i + ": " + formatHex (r));
 			}
 			console.error ("=== PC: " + formatHex (system.getPC () - 4));
+			console.error ("=== CPSR: " + formatHex (system.getCPSR ()));
 			throw new Error ("Bail! (" + code + ")");
 		}
 	};

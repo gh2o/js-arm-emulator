@@ -204,6 +204,7 @@ function inst_LDR (Rd, Rn, offset_immreg,
 
 	var offset = 0;
 	var address = 0;
+	var value = 0;
 
 	offset = DECODE_IMMEDIATE_REGISTER (offset);
 	switch (S32 (shift_type))
@@ -216,16 +217,33 @@ function inst_LDR (Rd, Rn, offset_immreg,
 			break;
 	}
 
+	// calculate address
 	address = getRegister (Rn);
-	if (U)
-		address = INT (address + offset);
-	else
-		address = INT (address - offset);
+	if ((P | W) == 0) // don't add offset if post-indexed
+	{
+		if (U)
+			address = INT (address + offset);
+		else
+			address = INT (address - offset);
+	}
 
-	log (LOG_ID, 1350870, LOG_HEX, S32 (getPC () - 4), LOG_HEX, S32 (address));
-	bail (1350870);
+	// TODO: unaligned access
+	if (address & 3)
+		bail (9028649);
 
-	return STAT_UND;
+	// do the access
+	value = readWord (address);
+	if (memoryError)
+		bail (12984); // data abort
+	
+	// write back, mask if PC
+	setRegister (Rd, S32 (Rd) == REG_PC ? value & ~3 : value);
+
+	// update base register
+	if (S32 (!!P) == S32 (!!W))
+		bail (7824690);
+
+	return STAT_OK;
 }
 
 /****************************************
