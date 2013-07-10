@@ -30,6 +30,8 @@
 	CASE_WILD_7_4(x##E) \
 	CASE_WILD_7_4(x##F)
 
+#define SUBDECODER_FUNCTION(x) CONCAT_TOKENS(DECODER_FUNCTION,_##x)
+
 #define Rn n16
 #define Rd n12
 #define Rs n8
@@ -347,3 +349,4 @@ function DECODER_FUNCTION (inst)
 #undef VASSERT
 #undef CASE_WILD_7_4
 #undef CASE_WILD_23_20_7_4
+#undef SUBDECODER_FUNCTION
