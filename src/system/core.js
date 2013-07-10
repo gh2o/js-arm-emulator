@@ -1,4 +1,9 @@
-#include "constants.inc"
+#define ASM_JS
+
+#include "core.inc"
+#include "instructions.inc"
+#include "../common.inc"
+#include "../system.inc"
 
 #define INT(x) ((x)|0)
 #define S32(x) ((x)|0)
@@ -63,7 +68,7 @@ function Core (stdlib, foreign, heap)
 	var log = foreign.log;
 	var bail = foreign.bail;
 
-	function reset ()
+	function _reset ()
 	{
 		// reset CPSR (don't use setCPSR because current mode is invalid)
 		wordView[ADDR_CPSR >> 2] = MODE_svc | PSR_I | PSR_F;
@@ -72,18 +77,18 @@ function Core (stdlib, foreign, heap)
 		setRegister (REG_PC, 0x0);
 	}
 
-	function getPC ()
+	function _getPC ()
 	{
 		return INT (wordView[REG_PC]);
 	}
 
-	function setPC (value)
+	function _setPC (value)
 	{
 		PARAM_INT (value);
 		wordView[REG_PC] = value;
 	}
 
-	function getRegister (reg)
+	function _getRegister (reg)
 	{
 		PARAM_INT (reg);
 		var value = 0, pcoffset = 0; /* pcoffset = 4 if reg is PC */
@@ -92,19 +97,19 @@ function Core (stdlib, foreign, heap)
 		return INT (value + pcoffset);
 	}
 
-	function setRegister (reg, value)
+	function _setRegister (reg, value)
 	{
 		PARAM_INT (reg);
 		PARAM_INT (value);
 		wordView[reg << 2 >> 2] = value;
 	}
 
-	function getCPSR ()
+	function _getCPSR ()
 	{
 		return INT (wordView[ADDR_CPSR >> 2]);
 	}
 
-	function setCPSR (value)
+	function _setCPSR (value)
 	{
 		PARAM_INT (value);
 
@@ -123,18 +128,18 @@ function Core (stdlib, foreign, heap)
 		}
 	}
 
-	function isPrivileged ()
+	function _isPrivileged ()
 	{
 		return INT ((getCPSR () & PSR_M) != MODE_usr);
 	}
 
-	function memoryAddressToHeapOffset (addr)
+	function _memoryAddressToHeapOffset (addr)
 	{
 		PARAM_INT (addr);
 		return INT (addr - memoryOffset + MEMORY_START);
 	}
 
-	function readWord (addr)
+	function _readWord (addr)
 	{
 		PARAM_INT (addr);
 
@@ -155,7 +160,7 @@ function Core (stdlib, foreign, heap)
 		return INT (wordView[offset >> 2]);
 	}
 
-	function writeWord (addr, value)
+	function _writeWord (addr, value)
 	{
 		PARAM_INT (addr);
 		PARAM_INT (value);
@@ -173,7 +178,7 @@ function Core (stdlib, foreign, heap)
 		wordView[offset >> 2] = value;
 	}
 
-	function tick (numInstructions)
+	function _tick (numInstructions)
 	{
 		PARAM_INT (numInstructions);
 
@@ -199,7 +204,7 @@ function Core (stdlib, foreign, heap)
 		}
 	}
 
-	function execute (inst)
+	function _execute (inst)
 	{
 		PARAM_INT (inst);
 
@@ -238,20 +243,20 @@ function Core (stdlib, foreign, heap)
 		return STAT_OK;
 	}
 
-#define DECODER_FUNCTION subexecute
+#define DECODER_FUNCTION _subexecute
 #include "decoder.js"
 #undef DECODER_FUNCTION
 
 #include "instructions.js"
 
 	return {
-		getPC: getPC,
-		setPC: setPC,
-		getRegister: getRegister,
-		setRegister: setRegister,
-		getCPSR: getCPSR,
-		setCPSR: setCPSR,
-		reset: reset,
-		tick: tick
+		getPC: _getPC,
+		setPC: _setPC,
+		getRegister: _getRegister,
+		setRegister: _setRegister,
+		getCPSR: _getCPSR,
+		setCPSR: _setCPSR,
+		reset: _reset,
+		tick: _tick
 	};
 }

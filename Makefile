@@ -1,3 +1,7 @@
+COMMON := build/util.js build/system.js build/system/wrapper.js
+OUTPUTS := output/debian.js
+CPPFLAGS := -nostdinc -undef -P
+
 all: output/debian.js
 
 run: all
@@ -6,18 +10,27 @@ run: all
 validate: all
 	./js -c output/debian.js
 
-output/debian.js: build/util.js build/system.js build/debian.js | output
-	cat $^ > $@
-
-build/%.js: src/%.js | build
-	cpp -nostdinc -undef -P $< -o $@
-
-build output:
-	[ -d $@ ] || mkdir $@
+clean:
+	rm -rf .depends build output
 
 .depends:
-$(shell rm -f .depends)
-depgen = $(shell cpp -nostdinc -MM -MT $(file:src/%.js=build/%.js) $(file) >> .depends)
-$(foreach file,$(wildcard src/*.js),$(depgen))
-include .depends
-$(shell rm -f .depends)
+	@echo > $@
+	@{$(foreach file,$(COMMON), \
+		cpp $(CPPFLAGS) -MM -MT $(file) $(file:build/%.js=src/%.js); \
+	)} >> $@
+	@{$(foreach file,$(OUTPUTS), \
+		cpp $(CPPFLAGS) -MM -MT $(file) $(file:output/%.js=src/%.js); \
+	)} >> $@
+	@echo "$@: Makefile $(COMMON)" >> $@
+
+ifneq ($(MAKECMDGOALS),clean)
+-include .depends
+endif
+
+output/%.js: $(COMMON) src/%.js
+	@mkdir -p output
+	cat $^ > $@
+
+build/%.js: src/%.js
+	@mkdir -p $$(dirname $@)
+	cpp $(CPPFLAGS) $< -o $@

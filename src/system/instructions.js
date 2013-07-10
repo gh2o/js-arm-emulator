@@ -1,17 +1,18 @@
-#include "decoder.inc"
+#include "instructions.inc"
+#include "core.inc"
 
 /****************************************
  * BRANCH INSTRUCTIONS                  *
  ****************************************/
 
-function inst_B (offset)
+function _inst_B (offset)
 {
 	PARAM_INT (offset);
 	setPC (INT (getRegister (REG_PC) + offset));
 	return STAT_OK;
 }
 
-function inst_BL (offset)
+function _inst_BL (offset)
 {
 	PARAM_INT (offset);
 	setRegister (REG_LR, getPC ());
@@ -23,7 +24,7 @@ function inst_BL (offset)
  * DATA PROCESSING INSTRUCTIONS         *
  ****************************************/
 
-function inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
+function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 {
 	PARAM_INT (opcode);
 	PARAM_INT (Rd);
@@ -141,7 +142,7 @@ function inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
  * STATUS REGISTER ACCESS INSTRUCTIONS  *
  ****************************************/
 
-function inst_MSR (immreg, R, field_mask)
+function _inst_MSR (immreg, R, field_mask)
 {
 	PARAM_INT (immreg);
 	PARAM_INT (R);
@@ -190,7 +191,7 @@ function inst_MSR (immreg, R, field_mask)
  * LOAD AND STORE INSTRUCTIONS          *
  ****************************************/
 
-function inst_LDR (Rd, Rn, offset_immreg,
+function _inst_LDR (Rd, Rn, offset_immreg,
 	shift_type, shift_amount, P, U, W)
 {
 	PARAM_INT (Rd);
@@ -250,7 +251,7 @@ function inst_LDR (Rd, Rn, offset_immreg,
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
 
-function inst_LDM (Rn, register_list, addressing_mode, W)
+function _inst_LDM (Rn, register_list, addressing_mode, W)
 {
 	PARAM_INT (Rn);
 	PARAM_INT (register_list);
@@ -301,7 +302,7 @@ function inst_LDM (Rn, register_list, addressing_mode, W)
  * COPROCESSOR INSTRUCTIONS             *
  ****************************************/
 
-function inst_MRC (Rd, cp_num, CRn, opcode_1, CRm, opcode_2)
+function _inst_MRC (Rd, cp_num, CRn, opcode_1, CRm, opcode_2)
 {
 	PARAM_INT (Rd);
 	PARAM_INT (cp_num);

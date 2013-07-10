@@ -1,5 +1,3 @@
-#include "common.inc"
-
 var neededFiles = {
 	kernel: {path: "../resources/kernelimage"},
 };

@@ -1,13 +1,5 @@
 #include "common.inc"
-#include "system/system.inc"
-
-#define CORE_MEMORY 4096
-#define MEMORY_START (CORE_MEMORY)
-
-#define LOG_ID (0)
-#define LOG_HEX (1)
-#define LOG_SIGNED (2)
-#define LOG_UNSIGNED (3)
+#include "system.inc"
 
 function System (options)
 {
@@ -41,8 +33,7 @@ function System (options)
 	 * BRING IN THE CORE                     *
 	 *****************************************/
 
-	#include "system/core.js"
-	this.core = Core (window, this.createForeign (), this.heap);
+	this.core = System.linkCore (this);
 
 	/*****************************************
 	 * EXPORT CORE FUNCTIONS                 *
@@ -63,50 +54,6 @@ System.prototype.needSwap = (function () {
 	arr.set ([0xCA, 0xFE, 0xBA, 0xBE]);
 	return 0xCAFEBABE === new Uint32Array (arr.buffer)[0];
 })();
-
-System.prototype.createForeign = function () {
-	var system = this;
-	return {
-		memorySize: this.options.memorySize,
-		memoryOffset: this.options.memoryOffset,
-		log: function () {
-			var nargs = [];
-			for (var i = 0; i < arguments.length; i += 2)
-			{
-				var k = arguments[i];
-				var v = arguments[i+1];
-				var a;
-				switch (k)
-				{
-					case LOG_ID:
-						a = "<" + v + ">";
-						break;
-					case LOG_HEX:
-						a = formatHex (v);
-						break;
-					case LOG_SIGNED:
-						a = (v >> 0).toString (10);
-						break;
-					case LOG_UNSIGNED:
-						a = (v >>> 0).toString (10);
-						break;
-				}
-				nargs.push (a)
-			}
-			console.log.apply (console, nargs);
-		},
-		bail: function (code) {
-			for (var i = 0; i < 16; i++)
-			{
-				var r = system.getRegister (i);
-				console.error ("=== R" + i + ": " + formatHex (r));
-			}
-			console.error ("=== PC: " + formatHex (system.getPC () - 4));
-			console.error ("=== CPSR: " + formatHex (system.getCPSR ()));
-			throw new Error ("Bail! (" + code + ")");
-		}
-	};
-};
 
 System.prototype.loadImage = function (image, address) {
 
