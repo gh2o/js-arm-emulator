@@ -41,6 +41,35 @@ function DECODER_FUNCTION (inst)
 {
 	PARAM_INT (inst);
 
+	// switch on bits[27:24]
+	switch ((inst >> 24) & 0xF)
+	{
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+			return INT (SUBDECODER_FUNCTION (primary) (inst));
+		default:
+			log (LOG_ID, 123321, LOG_HEX, S32 (getPC () - 4), LOG_HEX, S32 (inst));
+			bail (123321);
+			return STAT_UND;
+	}
+	
+	// for annotation
+	return STAT_UND;
+}
+
+function SUBDECODER_FUNCTION (primary) (inst)
+{
+	PARAM_INT (inst);
+	return STAT_UND;
+}
+
+#if 0
+function DECODER_FUNCTION (inst)
+{
+	PARAM_INT (inst);
+
 	// predefined variables
 	var dbits = 0;
 	var n16 = 0, n12 = 0, n8  = 0, n0  = 0;
@@ -340,6 +369,7 @@ function DECODER_FUNCTION (inst)
 	// for annotation
 	return STAT_UND;
 }
+#endif
 
 #undef Rn
 #undef Rd
