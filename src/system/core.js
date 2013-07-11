@@ -1,4 +1,5 @@
 #define ASM_JS
+#define DECODER_FUNCTION _subexecute
 
 #include "core.inc"
 #include "instructions.inc"
@@ -243,11 +244,15 @@ function Core (stdlib, foreign, heap)
 		return STAT_OK;
 	}
 
-#define DECODER_FUNCTION _subexecute
+#define DECODER_INCLUDE_FUNCTIONS
 #include "decoder.js"
-#undef DECODER_FUNCTION
+#undef DECODER_INCLUDE_FUNCTIONS
 
 #include "instructions.js"
+
+#define DECODER_INCLUDE_TABLES
+#include "decoder.js"
+#undef DECODER_INCLUDE_TABLES
 
 	return {
 		getPC: _getPC,
