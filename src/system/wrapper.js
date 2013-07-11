@@ -4,7 +4,9 @@
 
 #include "../system.inc"
 
-System.linkCore = function (system) {
+System.prototype.linkCore = function () {
+
+	var system = this;
 
 	var foreign = {
 		memorySize: system.options.memorySize,

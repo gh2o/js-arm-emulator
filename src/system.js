@@ -33,7 +33,7 @@ function System (options)
 	 * BRING IN THE CORE                     *
 	 *****************************************/
 
-	this.core = System.linkCore (this);
+	this.core = this.linkCore ();
 
 	/*****************************************
 	 * EXPORT CORE FUNCTIONS                 *
