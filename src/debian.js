@@ -1,7 +1,8 @@
 var neededFiles = {
 	kernel: {path: "../resources/kernelimage"}
 };
-var tickIntervalID = null;
+
+var system = null;
 
 initialize ();
 
@@ -44,6 +45,10 @@ function initialize ()
 
 function bootstrap ()
 {
+	// don't start if started already
+	if (system !== null)
+		return;
+
 	// copy kernel into memory
 	system = new System ();
 	system.loadImage (neededFiles.kernel.xhr.response, 0x20008000);
@@ -53,7 +58,7 @@ function bootstrap ()
 	system.setPC (0x20008000);
 
 	// start CPU intervals
-	tickIntervalID = setInterval (function () {
+	var tickIntervalID = setInterval (function () {
 		try {
 			tick ();
 		} catch (e) {
