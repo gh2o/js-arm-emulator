@@ -12,8 +12,11 @@
 #define ADDRESSING_MODE_DECREMENT_BEFORE (2)
 #define ADDRESSING_MODE_INCREMENT_BEFORE (3)
 
-#define COMBINE_IMMEDIATE_REGISTER(c,i,r) \
+#define PACK_IMMEDIATE_REGISTER(c,i,r) \
 	((c) ? -1 << 24 | (i) : (r) << 24)
+#define PACK_IMMEDIATE(i) ((-1 << 24) | (i))
+#define PACK_REGISTER(r) ((r) << 24)
+
 #define DECODE_IMMEDIATE_REGISTER(x) \
 	(S32 (x) < 0 ? (x) & 0xFFFFFF : getRegister (x >> 24))
 
