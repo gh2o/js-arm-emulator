@@ -27,7 +27,7 @@ ifneq ($(MAKECMDGOALS),clean)
 -include .depends
 endif
 
-output/%.js: $(COMMON) src/%.js
+output/%.js: $(COMMON) build/%.js
 	@mkdir -p output
 	cat $^ > $@
 
