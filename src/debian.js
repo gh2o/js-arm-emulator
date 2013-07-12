@@ -1,5 +1,5 @@
 var neededFiles = {
-	kernel: {path: "../resources/kernelimage"},
+	kernel: {path: "../resources/kernelimage"}
 };
 var tickIntervalID = null;
 
