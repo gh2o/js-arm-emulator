@@ -8,7 +8,7 @@ function System (options)
 	 *****************************************/
 
 	DEFAULT_OPTION (options, {});
-	DEFAULT_OPTION (options.memoryOffset, 0x10000000);
+	DEFAULT_OPTION (options.memoryOffset, 0x20000000);
 	DEFAULT_OPTION (options.memorySize, 32 * 1024 * 1024 - MEMORY_START);
 	this.options = options;
 

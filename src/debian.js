@@ -46,11 +46,11 @@ function bootstrap ()
 {
 	// copy kernel into memory
 	system = new System ();
-	system.loadImage (neededFiles.kernel.xhr.response, 0x10008000);
+	system.loadImage (neededFiles.kernel.xhr.response, 0x20008000);
 
 	// do system reset
 	system.reset ();
-	system.setPC (0x10008000);
+	system.setPC (0x20008000);
 
 	// start CPU intervals
 	tickIntervalID = setInterval (function () {
