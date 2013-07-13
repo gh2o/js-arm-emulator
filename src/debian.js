@@ -70,10 +70,10 @@ function bootstrap ()
 			clearInterval (tickIntervalID);
 			throw e;
 		}
-	}, 100);
+	}, 5);
 }
 
 function tick ()
 {
-	system.tick (100);
+	system.tick (10000);
 }

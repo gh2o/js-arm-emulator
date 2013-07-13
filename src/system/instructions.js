@@ -109,7 +109,11 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 			break;
 		case SHIFT_TYPE_ROTATE_RIGHT:
 			if (S32 (shift_operand) != 0)
-				bail (625356);
+			{
+				if ((shift_operand & 0x1F) != 0)
+					operand = ROTATE_RIGHT (operand, shift_operand & 0x1F);
+				carry = operand & (1 << 31);
+			}
 			break;
 		default:
 			bail (7536244);
@@ -132,8 +136,14 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		case 9:
 			result = base ^ operand;
 			break;
+		case 12:
+			result = base | operand;
+			break;
 		case 13:
 			result = operand;
+			break;
+		case 14:
+			result = base & ~operand;
 			break;
 		default:
 			bail (928343);
@@ -363,6 +373,23 @@ function _inst_LDM (Rn, register_list, addressing_mode, W)
  * COPROCESSOR INSTRUCTIONS             *
  ****************************************/
 
+function _inst_MCR (Rd, cp_num, CRn, opcode_1, CRm, opcode_2)
+{
+	PARAM_INT (Rd);
+	PARAM_INT (cp_num);
+	PARAM_INT (CRn);
+	PARAM_INT (opcode_1);
+	PARAM_INT (CRm);
+	PARAM_INT (opcode_2);
+
+	if (S32 (cp_num) == 15)
+		return cp15_write (CRn, opcode_1, CRm, opcode_2, Rd);
+
+	// for annotation, and if nothing satisfies
+	bail (86414);
+	return STAT_UND;
+}
+
 function _inst_MRC (Rd, cp_num, CRn, opcode_1, CRm, opcode_2)
 {
 	PARAM_INT (Rd);
@@ -372,43 +399,8 @@ function _inst_MRC (Rd, cp_num, CRn, opcode_1, CRm, opcode_2)
 	PARAM_INT (CRm);
 	PARAM_INT (opcode_2);
 
-	// only CP15 supported
-	if (S32 (cp_num) != 15)
-		return STAT_UND;
-
-	switch (S32 (CRn))
-	{
-		case 0:
-			if ((opcode_1 | CRm) == 0)
-			{
-				switch (S32 (opcode_2))
-				{
-					case 0: // Main ID Register (MIDR)
-						setRegister (Rd, 0x41129201);
-						return STAT_OK;
-				}
-			}
-			break;
-	}
-
-	log (
-		LOG_ID, 131,
-		LOG_SIGNED, INT (cp_num),
-		LOG_SIGNED, INT (opcode_1),
-		LOG_SIGNED, INT (Rd),
-		LOG_SIGNED, INT (CRn),
-		LOG_SIGNED, INT (CRm),
-		LOG_SIGNED, INT (opcode_2)
-	);
-	log (
-		LOG_ID, 132,
-		LOG_SIGNED, INT (Rd),
-		LOG_SIGNED, INT (cp_num),
-		LOG_SIGNED, INT (CRm),
-		LOG_SIGNED, INT (opcode_1),
-		LOG_SIGNED, INT (CRn),
-		LOG_SIGNED, INT (opcode_2)
-	);
+	if (S32 (cp_num) == 15)
+		return cp15_read (CRn, opcode_1, CRm, opcode_2, Rd);
 
 	// for annotation, and if nothing satisfies
 	bail (86414);

@@ -47,10 +47,6 @@
 	 0x0194: SPSR (irq)
 	 0x0198: SPSR (fiq)
 
-   Control registers:
-
-     0x0280: 
-
  ****************************************/
 
 #define ADDR_CPSR (0x0180)
@@ -69,8 +65,15 @@ function Core (stdlib, foreign, heap)
 	var log = foreign.log;
 	var bail = foreign.bail;
 
+#define CP15_INCLUDE_VARIABLES
+#include "cp15.js"
+#undef CP15_INCLUDE_VARIABLES
+
 	function _reset ()
 	{
+		// reset system registers
+		cp15_reset ();
+
 		// reset CPSR (don't use setCPSR because current mode is invalid)
 		wordView[ADDR_CPSR >> 2] = MODE_svc | PSR_I | PSR_F;
 
@@ -151,7 +154,10 @@ function Core (stdlib, foreign, heap)
 		if ((addr & 0x03) != 0)
 			bail (2136);
 
-		// TODO: MMU
+		// MMU
+		if (cp15_SCTLR & CP15_SCTLR_M)
+			bail (3244);
+
 		offset = memoryAddressToHeapOffset (addr);
 		if (U32 (offset) >= U32 (memorySize))
 		{
@@ -172,7 +178,10 @@ function Core (stdlib, foreign, heap)
 		if ((addr & 0x03) != 0)
 			bail (2137);
 
-		// TODO: MMU
+		// MMU
+		if (cp15_SCTLR & CP15_SCTLR_M)
+			bail (3245);
+
 		offset = memoryAddressToHeapOffset (addr);
 		if (U32 (offset) >= U32 (memorySize))
 			bail (2139);
@@ -249,6 +258,10 @@ function Core (stdlib, foreign, heap)
 #undef DECODER_INCLUDE_FUNCTIONS
 
 #include "instructions.js"
+
+#define CP15_INCLUDE_FUNCTIONS
+#include "cp15.js"
+#undef CP15_INCLUDE_FUNCTIONS
 
 #define DECODER_INCLUDE_TABLES
 #include "decoder.js"

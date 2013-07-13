@@ -196,6 +196,26 @@ function SUBDECODER_FUNCTION (LDR_STR_imm) (inst)
 	);
 }
 
+function SUBDECODER_FUNCTION (LDR_STR_reg) (inst)
+{
+	PARAM_INT (inst);
+
+	if (inst & (1 << 22)) // words only
+		bail (1309714);
+
+	return inst_LDR_STR (
+		inst & (1 << 20),   // L
+		Rd,                 // Rd
+		Rn,                 // Rn
+		PACK_REGISTER (Rm), // offset register/immediate
+		(inst >> 5) & 0x03, // shift type
+		(inst >> 7) & 0x1F, // shift amount
+		inst & (1 << 24),   // P
+		inst & (1 << 23),   // U
+		inst & (1 << 21)    // W
+	);
+}
+
 /****************************************
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
@@ -214,6 +234,19 @@ function SUBDECODER_FUNCTION (LDM) (inst)
 /****************************************
  * COPROCESSOR INSTRUCTIONS             *
  ****************************************/
+
+function SUBDECODER_FUNCTION (MCR) (inst)
+{
+	PARAM_INT (inst);
+	return inst_MCR (
+		Rd,             // Rd
+		n8,             // cp_num
+		Rn,             // CRn
+		inst >> 21 & 7, // opcode_1
+		Rm,             // CRm
+		inst >> 5 & 7   // opcode_2
+	);
+}
 
 function SUBDECODER_FUNCTION (MRC) (inst)
 {
@@ -278,11 +311,11 @@ var DECODER_TABLE = [
 	/* 0x15 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x16 */ FILL16(UND),
 	/* 0x17 */ FILL16(UND),
-	/* 0x18 */ FILL16(UND),
+	/* 0x18 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x19 */ FILL16(UND),
 	/* 0x1A */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1B */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x1C */ FILL16(UND),
+	/* 0x1C */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1D */ FILL16(UND),
 	/* 0x1E */ FILL16(UND),
 	/* 0x1F */ FILL16(UND),
@@ -332,7 +365,7 @@ var DECODER_TABLE = [
 	/* 0x45 */ FILL16(UND),
 	/* 0x46 */ FILL16(UND),
 	/* 0x47 */ FILL16(UND),
-	/* 0x48 */ FILL16(UND),
+	/* 0x48 */ FILL16(LDR_STR_imm),
 	/* 0x49 */ FILL16(LDR_STR_imm),
 	/* 0x4A */ FILL16(UND),
 	/* 0x4B */ FILL16(UND),
@@ -357,6 +390,9 @@ var DECODER_TABLE = [
 	/* 0x5D */ FILL16(UND),
 	/* 0x5E */ FILL16(UND),
 	/* 0x5F */ FILL16(UND),
+
+#define r67a SUBDECODER_FUNCTION(LDR_STR_reg), und
+#define ROW_6_7_LDR_STR() r67a, r67a, r67a, r67a, r67a, r67a, r67a, r67a
 
 	/* 0x60 */ FILL16(UND),
 	/* 0x61 */ FILL16(UND),
@@ -383,14 +419,17 @@ var DECODER_TABLE = [
 	/* 0x75 */ FILL16(UND),
 	/* 0x76 */ FILL16(UND),
 	/* 0x77 */ FILL16(UND),
-	/* 0x78 */ FILL16(UND),
-	/* 0x79 */ FILL16(UND),
+	/* 0x78 */ ROW_6_7_LDR_STR(),
+	/* 0x79 */ ROW_6_7_LDR_STR(),
 	/* 0x7A */ FILL16(UND),
 	/* 0x7B */ FILL16(UND),
 	/* 0x7C */ FILL16(UND),
 	/* 0x7D */ FILL16(UND),
 	/* 0x7E */ FILL16(UND),
 	/* 0x7F */ FILL16(UND),
+
+#undef r67a
+#undef ROW_6_7_LDR_STR
 
 	/* 0x80 */ FILL16(UND),
 	/* 0x81 */ FILL16(UND),
@@ -494,25 +533,25 @@ var DECODER_TABLE = [
 	/* 0xDE */ FILL16(UND),
 	/* 0xDF */ FILL16(UND),
 
-#define re und, und
+#define re und, SUBDECODER_FUNCTION(MCR)
 #define ROW_E_EVEN() re, re, re, re, re, re, re, re
 #define ro und, SUBDECODER_FUNCTION(MRC)
 #define ROW_E_ODD() ro, ro, ro, ro, ro, ro, ro, ro
-	/* 0xE0 */ FILL16(UND),
+	/* 0xE0 */ ROW_E_EVEN(),
 	/* 0xE1 */ ROW_E_ODD(),
-	/* 0xE2 */ FILL16(UND),
+	/* 0xE2 */ ROW_E_EVEN(),
 	/* 0xE3 */ ROW_E_ODD(),
-	/* 0xE4 */ FILL16(UND),
+	/* 0xE4 */ ROW_E_EVEN(),
 	/* 0xE5 */ ROW_E_ODD(),
-	/* 0xE6 */ FILL16(UND),
+	/* 0xE6 */ ROW_E_EVEN(),
 	/* 0xE7 */ ROW_E_ODD(),
-	/* 0xE8 */ FILL16(UND),
+	/* 0xE8 */ ROW_E_EVEN(),
 	/* 0xE9 */ ROW_E_ODD(),
-	/* 0xEA */ FILL16(UND),
+	/* 0xEA */ ROW_E_EVEN(),
 	/* 0xEB */ ROW_E_ODD(),
-	/* 0xEC */ FILL16(UND),
+	/* 0xEC */ ROW_E_EVEN(),
 	/* 0xED */ ROW_E_ODD(),
-	/* 0xEE */ FILL16(UND),
+	/* 0xEE */ ROW_E_EVEN(),
 	/* 0xEF */ ROW_E_ODD(),
 #undef re
 #undef ROW_E_EVEN
