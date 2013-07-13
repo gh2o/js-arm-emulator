@@ -57,6 +57,14 @@ System.prototype.needSwap = (function () {
 
 System.prototype.loadImage = function (image, address) {
 
+	// pad if not word-aligned
+	if (image.byteLength & 0x03)
+	{
+		var next = new ArrayBuffer ((image.byteLength + 3) & ~0x03);
+		new Uint8Array (next).set (new Uint8Array (image));
+		image = next;
+	}
+
 	// create source buffer
 	var source = new Int32Array (image.slice (0));
 
