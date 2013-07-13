@@ -42,6 +42,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 	var carry = 0;
 	var result = 0;
 
+	/*
 	log (
 		LOG_ID, 496802,
 		LOG_HEX, INT (getPC () - 4),
@@ -53,10 +54,11 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		LOG_SIGNED, INT (shift_type),
 		LOG_SIGNED, INT (S)
 	);
+	*/
 
 	base = getRegister (Rn);
 	operand = DECODE_IMMEDIATE_REGISTER (immreg);
-	shift_operand = DECODE_IMMEDIATE_REGISTER (shift_immreg);
+	shift_operand = DECODE_IMMEDIATE_REGISTER (shift_immreg) & 0xFF;
 
 	cpsr = getCPSR ();
 	carry = cpsr & PSR_C;
@@ -65,7 +67,45 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 	{
 		case SHIFT_TYPE_LOGICAL_LEFT:
 			if (S32 (shift_operand) != 0)
-				bail (625354);
+			{
+				if (S32 (shift_operand) < 32)
+				{
+					operand = operand << (shift_operand - 1);
+					carry = operand & (1 << 31);
+					operand = operand << 1;
+				}
+				else if (S32 (shift_operand) == 32)
+				{
+					carry = operand & 1;
+					operand = 0;
+				}
+				else
+				{
+					carry = 0;
+					operand = 0;
+				}
+			}
+			break;
+		case SHIFT_TYPE_LOGICAL_RIGHT:
+			if (S32 (shift_operand) != 0)
+			{
+				if (S32 (shift_operand) < 32)
+				{
+					operand = operand >>> (shift_operand - 1);
+					carry = operand & 1;
+					operand = operand >>> 1;
+				}
+				else if (S32 (shift_operand) == 32)
+				{
+					carry = operand & (1 << 31);
+					operand = 0;
+				}
+				else
+				{
+					carry = 0;
+					operand = 0;
+				}
+			}
 			break;
 		case SHIFT_TYPE_ROTATE_RIGHT:
 			if (S32 (shift_operand) != 0)
@@ -201,9 +241,10 @@ function _inst_MSR (immreg, R, field_mask)
  * LOAD AND STORE INSTRUCTIONS          *
  ****************************************/
 
-function _inst_LDR (Rd, Rn, offset_immreg,
+function _inst_LDR_STR (L, Rd, Rn, offset_immreg,
 	shift_type, shift_amount, P, U, W)
 {
+	PARAM_INT (L);
 	PARAM_INT (Rd);
 	PARAM_INT (Rn);
 	PARAM_INT (offset_immreg);
@@ -215,6 +256,7 @@ function _inst_LDR (Rd, Rn, offset_immreg,
 
 	var offset = 0;
 	var address = 0;
+	var wbaddress = 0;
 	var value = 0;
 
 	offset = DECODE_IMMEDIATE_REGISTER (offset_immreg);
@@ -228,31 +270,40 @@ function _inst_LDR (Rd, Rn, offset_immreg,
 			break;
 	}
 
-	// calculate address
+	// calculate addresses
 	address = getRegister (Rn);
-	if (P | W) // don't add offset if post-indexed
-	{
-		if (U)
-			address = INT (address + offset);
-		else
-			address = INT (address - offset);
-	}
+	if (U)
+		wbaddress = INT (address + offset);
+	else
+		wbaddress = INT (address - offset);
+	if (P | W) // not post-indexed
+		address = wbaddress;
 
 	// TODO: unaligned access
 	if (address & 3)
 		bail (9028649);
 
 	// do the access
-	value = readWord (address);
-	if (memoryError)
-		bail (12984); // data abort
-	
-	// write back, mask if PC
-	setRegister (Rd, S32 (Rd) == REG_PC ? value & ~3 : value);
+	if (L)
+	{
+		// LDR
+		value = readWord (address);
+		if (memoryError)
+			bail (12984); // data abort
+		setRegister (Rd, S32 (Rd) == REG_PC ? value & ~3 : value); // mask if PC
+	}
+	else
+	{
+		// STR
+		value = getRegister (Rd);
+		writeWord (address, value);
+		if (memoryError)
+			bail (12985); // data abort
+	}
 
-	// update base register
+	// writeback base register only if wbaddress is valid
 	if (S32 (!!P) == S32 (!!W))
-		bail (7824690);
+		setRegister (Rn, wbaddress);
 
 	return STAT_OK;
 }

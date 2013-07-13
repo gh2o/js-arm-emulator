@@ -128,10 +128,20 @@ function SUBDECODER_FUNCTION(DATA_reg_imm) (inst)
 
 	shift_type = (inst >> 5) & 0x03;
 	shift_imm = (inst >> 7) & 0x1F;
-	if (S32 (shift_type) == SHIFT_TYPE_ROTATE_RIGHT)
-		if (S32 (shift_imm) == 0)
-			shift_type = SHIFT_TYPE_ROTATE_WITH_EXTEND;
 
+	// apply shift fixups
+	switch (S32 (shift_type))
+	{
+		case SHIFT_TYPE_LOGICAL_RIGHT:
+			if (S32 (shift_imm) == 0)
+				shift_imm = 32;
+			break;
+		case SHIFT_TYPE_ROTATE_RIGHT:
+			if (S32 (shift_imm) == 0)
+				shift_type = SHIFT_TYPE_ROTATE_WITH_EXTEND;
+			break;
+	}
+	
 	return inst_DATA (
 		opcode,                     // opcode
 		Rd,                         // Rd
@@ -166,16 +176,15 @@ function SUBDECODER_FUNCTION (MSR_imm) (inst)
  * LOAD AND STORE INSTRUCTIONS          *
  ****************************************/
 
-function SUBDECODER_FUNCTION (LS_imm) (inst)
+function SUBDECODER_FUNCTION (LDR_STR_imm) (inst)
 {
 	PARAM_INT (inst);
 
-	if (!(inst & (1 << 20))) // loads only
-		bail (2404762);
 	if (inst & (1 << 22)) // words only
 		bail (1309713);
 
-	return inst_LDR (
+	return inst_LDR_STR (
+		inst & (1 << 20),               // L
 		Rd,                             // Rd
 		Rn,                             // Rn
 		PACK_IMMEDIATE (inst & 0x0FFF), // offset register/immediate
@@ -324,7 +333,7 @@ var DECODER_TABLE = [
 	/* 0x46 */ FILL16(UND),
 	/* 0x47 */ FILL16(UND),
 	/* 0x48 */ FILL16(UND),
-	/* 0x49 */ FILL16(UND),
+	/* 0x49 */ FILL16(LDR_STR_imm),
 	/* 0x4A */ FILL16(UND),
 	/* 0x4B */ FILL16(UND),
 	/* 0x4C */ FILL16(UND),
@@ -340,8 +349,8 @@ var DECODER_TABLE = [
 	/* 0x55 */ FILL16(UND),
 	/* 0x56 */ FILL16(UND),
 	/* 0x57 */ FILL16(UND),
-	/* 0x58 */ FILL16(UND),
-	/* 0x59 */ FILL16(LS_imm),
+	/* 0x58 */ FILL16(LDR_STR_imm),
+	/* 0x59 */ FILL16(LDR_STR_imm),
 	/* 0x5A */ FILL16(UND),
 	/* 0x5B */ FILL16(UND),
 	/* 0x5C */ FILL16(UND),
