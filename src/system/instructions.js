@@ -220,7 +220,7 @@ function _inst_LDR (Rd, Rn, offset_immreg,
 
 	// calculate address
 	address = getRegister (Rn);
-	if ((P | W) == 0) // don't add offset if post-indexed
+	if (P | W) // don't add offset if post-indexed
 	{
 		if (U)
 			address = INT (address + offset);
