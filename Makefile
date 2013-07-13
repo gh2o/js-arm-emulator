@@ -19,7 +19,7 @@ clean:
 		cpp $(CPPFLAGS) -MM -MT $(file) $(file:build/%.js=src/%.js); \
 	)} >> $@
 	@{$(foreach file,$(OUTPUTS), \
-		cpp $(CPPFLAGS) -MM -MT $(file) $(file:output/%.js=src/%.js); \
+		cpp $(CPPFLAGS) -MM -MT $(file:output/%.js=build/%.js) $(file:output/%.js=src/%.js); \
 	)} >> $@
 	@echo "$@: Makefile $(COMMON)" >> $@
 
