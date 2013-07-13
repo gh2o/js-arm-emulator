@@ -83,6 +83,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 			result = base & operand;
 			break;
 		case 2:
+		case 10:
 			result = INT (base - operand);
 			break;
 		case 4:
@@ -125,6 +126,15 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 						(result & (1 << 31)) |
 						((S32 (result) == 0) << 30) |
 						(!!carry << 29);
+					break;
+				case 2:
+				case 10:
+					cpsr =
+						(cpsr & 0x0FFFFFFF) |
+						(result & (1 << 31)) |
+						((S32 (result) == 0) << 30) |
+						((U32 (base) >= U32 (operand)) << 29) |
+						(((base ^ operand) & (base ^ result)) >> 3) & (1 << 28);
 					break;
 				default:
 					bail (212313);
