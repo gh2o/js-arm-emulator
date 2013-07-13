@@ -207,7 +207,7 @@ function _inst_LDR (Rd, Rn, offset_immreg,
 	var address = 0;
 	var value = 0;
 
-	offset = DECODE_IMMEDIATE_REGISTER (offset);
+	offset = DECODE_IMMEDIATE_REGISTER (offset_immreg);
 	switch (S32 (shift_type))
 	{
 		case SHIFT_TYPE_LOGICAL_LEFT:
