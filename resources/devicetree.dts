@@ -1,0 +1,8 @@
+/dts-v1/;
+/include/ "../ksource/arch/arm/boot/dts/at91rm9200.dtsi"
+
+/ {
+	chosen {
+		bootargs = "earlyprintk debug";
+	};
+};

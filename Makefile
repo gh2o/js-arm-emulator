@@ -2,7 +2,7 @@ COMMON := build/util.js build/system.js build/system/wrapper.js
 OUTPUTS := output/debian.js
 CPPFLAGS := -nostdinc -undef -P
 
-all: output/debian.js
+all: output/debian.js resources/devicetree.dtb
 
 run: all
 	xdotool search '^JS Debian - ' | xargs -I: xdotool key --window : F5
@@ -34,3 +34,6 @@ output/%.js: $(COMMON) build/%.js
 build/%.js: src/%.js
 	@mkdir -p $$(dirname $@)
 	cpp $(CPPFLAGS) $< -o $@
+
+resources/%.dtb: resources/%.dts
+	./kbuild/scripts/dtc/dtc $< -o $@
