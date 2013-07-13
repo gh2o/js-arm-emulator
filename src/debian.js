@@ -1,5 +1,8 @@
+#include "system.inc"
+
 var neededFiles = {
-	kernel: {path: "../resources/kernelimage"}
+	kernel: {path: "../resources/kernelimage"},
+	devicetree: {path: "../resources/devicetree.dtb"}
 };
 
 var system = null;
@@ -52,10 +55,12 @@ function bootstrap ()
 	// copy kernel into memory
 	system = new System ();
 	system.loadImage (neededFiles.kernel.xhr.response, 0x20008000);
+	system.loadImage (neededFiles.devicetree.xhr.response, 0x21000000);
 
 	// do system reset
 	system.reset ();
 	system.setPC (0x20008000);
+	system.setRegister (REG_R2, 0x21000000);
 
 	// start CPU intervals
 	var tickIntervalID = setInterval (function () {
