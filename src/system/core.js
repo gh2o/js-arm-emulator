@@ -65,6 +65,7 @@ function Core (stdlib, foreign, heap)
 	var memorySize = INT (foreign.memorySize);
 	var memoryError = 0;
 
+	var imul = stdlib.Math.imul;
 	var log = foreign.log;
 	var bail = foreign.bail;
 

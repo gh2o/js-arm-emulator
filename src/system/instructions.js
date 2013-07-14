@@ -248,6 +248,39 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 }
 
 /****************************************
+ * MULTIPLY INSTRUCTIONS                *
+ ****************************************/
+
+function _inst_MUL_MLA (A, Rd, Rm, Rs, Rn, S)
+{
+	// Rn is invalid of A == 0 (MUL)
+	PARAM_INT (A);
+	PARAM_INT (Rd);
+	PARAM_INT (Rm);
+	PARAM_INT (Rs);
+	PARAM_INT (Rn);
+	PARAM_INT (S);
+
+	var result = 0;
+	result = imul (getRegister (Rm), getRegister (Rs));
+	if (A)
+		result = INT (result + getRegister (Rn));
+
+	setRegister (Rd, result);
+
+	if (S)
+	{
+		setCPSR (
+			(getCPSR () & 0x3FFFFFFF) |
+			(result & (1 << 31)) |
+			((S32 (result) == 0) << 30)
+		);
+	}
+
+	return STAT_OK;
+}
+
+/****************************************
  * STATUS REGISTER ACCESS INSTRUCTIONS  *
  ****************************************/
 

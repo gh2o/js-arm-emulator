@@ -186,6 +186,30 @@ function SUBDECODER_FUNCTION (DATA_reg_reg) (inst)
 #undef VALIDATE_DATA
 
 /****************************************
+ * MULTIPLY INSTRUCTIONS                *
+ ****************************************/
+
+function SUBDECODER_FUNCTION (MUL_MLA) (inst)
+{
+	PARAM_INT (inst);
+
+#ifndef DECODER_NO_VALIDATION
+	if (!(inst & (1 << 21)))
+		VASSERT (n12 == 0);
+#endif
+	
+	// Rd and Rn are reversed for MUL and MLA
+	return inst_MUL_MLA (
+		inst & (1 << 21), // accumulate (MLA)
+		n16,              // Rd (result register)
+		Rm,               // Rm (multiplicand 1)
+		Rs,               // Rs (multiplicand 2)
+		n12,              // Rn (accumulator)
+		inst & (1 << 20)  // S
+	);
+}
+
+/****************************************
  * STATUS REGISTER ACCESS INSTRUCTIONS  *
  ****************************************/
 
@@ -355,7 +379,7 @@ var DECODER_TABLE = [
                              r01a, SUBDECODER_FUNCTION(qd), r01a, SUBDECODER_FUNCTION(qf)
 	/* 0x00 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x01 */ FILL16(UND),
-	/* 0x02 */ FILL16(UND),
+	/* 0x02 */ ROW_0_1(MUL_MLA,UND,UND,UND),
 	/* 0x03 */ FILL16(UND),
 	/* 0x04 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x05 */ FILL16(UND),
