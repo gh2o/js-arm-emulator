@@ -331,16 +331,16 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 	PARAM_INT (W);
 
 	var i = 0;
+	var base = 0;
 	var ptr = 0;
 	var value = 0;
 
-	ptr = getRegister (Rn);
+	base = getRegister (Rn);
+	ptr = base;
 	if (ptr & 0x03)
 		bail (13451701); // unaligned access
 	
-	if (!L)
-		bail (8349091);
-
+	// possible problem: assuming memoryError is STAT_OK on entry
 	switch (S32 (addressing_mode))
 	{
 		case ADDRESSING_MODE_INCREMENT_BEFORE:
@@ -354,7 +354,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 					{
 						value = readWord (ptr);
 						if (memoryError)
-							bail (12982); // data abort
+							break;
 						setRegister (i, S32 (i) == REG_PC ? value & ~3 : value); // mask if PC
 					}
 					else
@@ -362,7 +362,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 						value = getRegister (i);
 						writeWord (ptr, value);
 						if (memoryError)
-							bail (12984); // data abort
+							break;
 					}
 					ptr = INT (ptr + 4);
 				}
@@ -374,8 +374,11 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 			break;
 	}
 
-	if (register_list & (1 << REG_PC))
-		setPC (getPC () & ~3);
+	if (memoryError)
+	{
+		setRegister (Rn, base); // restore to comply with abort model
+		bail (12982);
+	}
 
 	if (W)
 	{
