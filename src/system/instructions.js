@@ -401,6 +401,18 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 				bail (2384093);
 			break;
 
+		case 7: // LDRSH
+			if (address & 1)
+				bail (392850); // unaligned access
+			value = readByte (address);
+			if (memoryError)
+				bail (3465131);
+			value = value | (readByte (INT (address + 1)) << 8);
+			if (memoryError)
+				bail (3465132);
+			setRegister (Rd, (value << 16) >> 16);
+			break;
+
 		default:
 			log (LOG_ID, 189351, LOG_SIGNED, S32 (LSH));
 			bail (189351);
