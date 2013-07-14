@@ -498,7 +498,7 @@ var DECODER_TABLE = [
 	/* 0x52 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x53 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x54 */ FILL16(UND),
-	/* 0x55 */ FILL16(UND),
+	/* 0x55 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x56 */ FILL16(UND),
 	/* 0x57 */ FILL16(UND),
 	/* 0x58 */ FILL16(LDR_STR_LDRB_STRB_imm),

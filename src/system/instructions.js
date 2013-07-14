@@ -235,6 +235,14 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 						(((base | ~operand) & (~operand | ~result) & (~result | base)) >> 2) & (1 << 29) |
 						(((base ^ operand) & (base ^ result)) >> 3) & (1 << 28);
 					break;
+				case 3:
+					cpsr =
+						(cpsr & 0x0FFFFFFF) |
+						(result & (1 << 31)) |
+						((S32 (result) == 0) << 30) |
+						(((operand | ~base) & (~base | ~result) & (~result | operand)) >> 2) & (1 << 29) |
+						(((operand ^ base) & (operand ^ result)) >> 3) & (1 << 28);
+					break;
 				case 4:
 				case 11:
 					cpsr = 
@@ -639,6 +647,11 @@ function _inst_SVC (imm)
 	{
 		switch (getRegister (REG_R0))
 		{
+			case 3:
+				base = getRegister (REG_R1);
+				chr = readByte (base);
+				print (S32 (chr));
+				return STAT_OK;
 			case 4:
 				base = getRegister (REG_R1);
 				while (1)
