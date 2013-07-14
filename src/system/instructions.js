@@ -330,13 +330,17 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 	PARAM_INT (addressing_mode);
 	PARAM_INT (W);
 
+	var origBase = 0;
+	var origPC = 0;
+
 	var i = 0;
-	var base = 0;
 	var ptr = 0;
 	var value = 0;
 
-	base = getRegister (Rn);
-	ptr = base;
+	origBase = getRegister (Rn);
+	origPC = getPC ();
+
+	ptr = origBase;
 	if (ptr & 0x03)
 		bail (13451701); // unaligned access
 	
@@ -376,7 +380,9 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 
 	if (memoryError)
 	{
-		setRegister (Rn, base); // restore to comply with abort model
+		// restore to comply with abort model
+		setRegister (Rn, origBase);
+		setPC (origPC);
 		bail (12982);
 	}
 
