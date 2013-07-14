@@ -183,6 +183,19 @@ function SUBDECODER_FUNCTION (MSR_imm) (inst)
 	);
 }
 
+function SUBDECODER_FUNCTION (MSR_reg) (inst)
+{
+	PARAM_INT (inst);
+	VASSERT (n12 == 15);
+	VASSERT (n8 == 0);
+	return inst_MSR (
+		PACK_REGISTER (Rm), // operand
+		0,                  // rotate amount
+		inst & (1 << 22),   // R
+		n16                 // field_mask
+	);
+}
+
 /****************************************
  * LOAD AND STORE INSTRUCTIONS          *
  ****************************************/
@@ -308,7 +321,7 @@ var DECODER_TABLE = [
 	/* 0x06 */ FILL16(UND),
 	/* 0x07 */ FILL16(UND),
 	/* 0x08 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x09 */ FILL16(UND),
+	/* 0x09 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x0A */ FILL16(UND),
 	/* 0x0B */ FILL16(UND),
 	/* 0x0C */ FILL16(UND),
@@ -317,7 +330,7 @@ var DECODER_TABLE = [
 	/* 0x0F */ FILL16(UND),
 	/* 0x10 */ SUBDECODER_FUNCTION(MRS), und, und, und, und, und, und, und, und, und, und, und, und, und, und, und,
 	/* 0x11 */ FILL16(UND),
-	/* 0x12 */ FILL16(UND),
+	/* 0x12 */ SUBDECODER_FUNCTION(MSR_reg), und, und, und, und, und, und, und, und, und, und, und, und, und, und, und,
 	/* 0x13 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x14 */ FILL16(UND),
 	/* 0x15 */ ROW_0_1(UND,UND,UND,UND),
