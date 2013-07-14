@@ -220,10 +220,11 @@ function SUBDECODER_FUNCTION (LDR_STR_reg) (inst)
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
 
-function SUBDECODER_FUNCTION (LDM) (inst)
+function SUBDECODER_FUNCTION (LDM_STM) (inst)
 {
 	PARAM_INT (inst);
-	return inst_LDM (
+	return inst_LDM_STM (
+		inst & (1 << 20),   // L
 		Rn,                 // Rn
 		inst & 0xFFFF,      // register list
 		(inst >> 23) & 0x3, // addressing mode (P/U bits)
@@ -440,9 +441,9 @@ var DECODER_TABLE = [
 	/* 0x86 */ FILL16(UND),
 	/* 0x87 */ FILL16(UND),
 	/* 0x88 */ FILL16(UND),
-	/* 0x89 */ FILL16(LDM),
+	/* 0x89 */ FILL16(LDM_STM),
 	/* 0x8A */ FILL16(UND),
-	/* 0x8B */ FILL16(LDM),
+	/* 0x8B */ FILL16(LDM_STM),
 	/* 0x8C */ FILL16(UND),
 	/* 0x8D */ FILL16(UND),
 	/* 0x8E */ FILL16(UND),

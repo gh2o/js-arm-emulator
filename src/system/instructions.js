@@ -322,8 +322,9 @@ function _inst_LDR_STR (L, Rd, Rn, offset_immreg,
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
 
-function _inst_LDM (Rn, register_list, addressing_mode, W)
+function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 {
+	PARAM_INT (L);
 	PARAM_INT (Rn);
 	PARAM_INT (register_list);
 	PARAM_INT (addressing_mode);
@@ -335,6 +336,9 @@ function _inst_LDM (Rn, register_list, addressing_mode, W)
 	ptr = getRegister (Rn);
 	if (ptr & 0x03)
 		bail (13451701); // unaligned access
+	
+	if (!L)
+		bail (8349091);
 
 	switch (S32 (addressing_mode))
 	{
