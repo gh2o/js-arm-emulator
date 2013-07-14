@@ -195,7 +195,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 			break;
 	}
 
-	if ((S32 (opcode) < 8) | (S32 (opcode) >= 12))
+	if ((opcode & 0xC) != 0x8)
 		setRegister (Rd, result);
 
 	if (S)

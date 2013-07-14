@@ -136,7 +136,9 @@ function _translateAddress (vaddr, trtype)
 	PARAM_INT (trtype);
 
 	var desc1 = 0;
+	var desc2 = 0;
 	var domain = 0;
+	var permitted = 0;
 	var paddr = -1;
 
 	// get first level descriptor
@@ -156,6 +158,29 @@ function _translateAddress (vaddr, trtype)
 			cp15_FSR = 0x05;
 			cp15_FAR = vaddr;
 			return 0;
+		case 1: // course
+			desc2 = readWordPhysical ((desc1 & 0xFFFFFC00) | (vaddr >> 10 & 0x03FC));
+			if (memoryError)
+			{
+				memoryError = STAT_ABT;
+				cp15_FSR = 0x0E | (domain << 4);
+				cp15_FAR = vaddr;
+				return 0;
+			}
+			switch (desc2 & 3)
+			{
+				case 0: // fault
+					memoryError = STAT_ABT;
+					cp15_FSR = 0x07 | (domain << 4);
+					cp15_FAR = vaddr;
+					return 0;
+				case 2: // small pages
+					paddr = (desc2 & 0xFFFFF000) | (vaddr & 0x0FFF);
+					break;
+				default:
+					bail (13840193);
+			}
+			break;
 		case 2: // section
 			paddr = (desc1 & 0xFFF00000) | (vaddr & 0x000FFFFF);
 			break;
@@ -170,12 +195,48 @@ function _translateAddress (vaddr, trtype)
 	{
 		case 0: // no access
 			memoryError = STAT_ABT;
-			cp15_FSR = 0x09 | ((dtype != 2) << 1);
+			cp15_FSR = (dtype == 2 ? 0x9 : 0xB) | (domain << 4);
 			cp15_FAR = vaddr;
 			return 0;
 		case 1: // client
-			bail (328502); // TODO: check permissions
-			return 0;
+			// TODO: subpage AP bits
+			switch (desc2 >> 4 & 0xFF)
+			{
+				case 0x00:
+				case 0x55:
+				case 0xaa:
+				case 0xff:
+					break;
+				default:
+					bail (328514);
+					break;
+			}
+			switch (desc2 >> 4 & 0x03)
+			{
+				case 0:
+					switch (cp15_SCTLR >> 8 & 0x03) // R/S bits
+					{
+						case 1:
+							permitted = !(trtype & TRANSLATE_WRITE) & !!isPrivileged ();
+							break;
+						case 2:
+							permitted = !(trtype & TRANSLATE_WRITE);
+							break;
+					}
+					break;
+				case 1:
+					permitted = !!isPrivileged ()
+					break;
+				case 2:
+					permitted = !(trType & TRANSLATE_WRITE) | !!isPrivileged ();
+					break;
+				case 3:
+					permitted = 1;
+					break;
+			}
+			if (!permitted)
+				bail (1231809); // permission denied
+			break;
 		case 2: // unpredictable
 			bail (432159);
 			return 0;
