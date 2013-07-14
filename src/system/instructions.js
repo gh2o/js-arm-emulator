@@ -155,6 +155,9 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		case 8:
 			result = base & operand;
 			break;
+		case 1:
+			result = base ^ operand;
+			break;
 		case 2:
 		case 10:
 			result = INT (base - operand);

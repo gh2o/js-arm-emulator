@@ -522,7 +522,7 @@ var DECODER_TABLE = [
 	/* 0x78 */ ROW_6_7_LDR_STR(),
 	/* 0x79 */ ROW_6_7_LDR_STR(),
 	/* 0x7A */ FILL16(UND),
-	/* 0x7B */ FILL16(UND),
+	/* 0x7B */ ROW_6_7_LDR_STR(),
 	/* 0x7C */ ROW_6_7_LDR_STR(),
 	/* 0x7D */ ROW_6_7_LDR_STR(),
 	/* 0x7E */ FILL16(UND),

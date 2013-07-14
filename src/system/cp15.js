@@ -119,8 +119,14 @@ function _cp15_write (CRn, opcode_1, CRm, opcode_2, Rd)
 			{
 				switch (CRm << 4 | opcode_2)
 				{
+					case 0x51:
+						// UNIMPLEMENTED: invalidate instruction cache line (MVA)
+						return STAT_OK;
 					case 0x70:
 						// UNIMPLEMENTED: invalidate all caches
+						return STAT_OK;
+					case 0xA1:
+						// UNIMPLEMENTED: clear data cache line (MVA)
 						return STAT_OK;
 					case 0xA4:
 						// UNIMPLEMENTED: data synchronization barrier
