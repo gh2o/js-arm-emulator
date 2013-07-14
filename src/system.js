@@ -87,3 +87,7 @@ System.prototype.loadImage = function (image, address) {
 	var target = new Int32Array (this.heap, heapOffset, source.length);
 	target.set (source);
 };
+
+System.prototype.onConsoleByte = function () {
+	throw new Error ("override onConsoleByte!");
+};

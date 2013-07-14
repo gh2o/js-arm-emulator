@@ -49,8 +49,7 @@ System.prototype.linkCore = function () {
 			throw new Error ("Bail! (" + code + ")");
 		},
 		print: function (b) {
-			var op = document.getElementById ("output");
-			op.appendChild (document.createTextNode (String.fromCharCode (b)));
+			system.onConsoleByte (b & 0xFF);
 		}
 	};
 

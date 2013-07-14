@@ -19,6 +19,13 @@ system = new System ();
 system.loadImage (neededFiles.kernel.buffer, 0x20008000);
 system.loadImage (neededFiles.devicetree.buffer, 0x21000000);
 
+// output routine
+var writeBuffer = new Buffer (1);
+system.onConsoleByte = function (b) {
+	writeBuffer[0] = b;
+	process.stdout.write (writeBuffer);
+};
+
 // do system reset
 system.reset ();
 system.setPC (0x20008000);
