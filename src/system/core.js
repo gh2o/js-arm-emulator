@@ -24,33 +24,31 @@
  
  Core memory map:
 
-   General purpose registers:
+   Working set registers:
 
-     0x0000 - 0x0040: current R0-R15
-     0x0040 - 0x0054: R8-R12 for all modes except fiq
-	 0x0054 - 0x0060: unused
-     0x0060 - 0x0074: R8-R12 for mode fiq
-	 0x0074 - 0x0080: unused
-     0x0080 - 0x0088: R13-R14 for modes usr and sys
-     0x0088 - 0x0090: R13-R14 for mode svc
-     0x0090 - 0x0098: R13-R14 for mode abt
-     0x0098 - 0x0100: R13-R14 for mode und
-	 0x0100 - 0x0108: R13-R14 for mode irq
-	 0x0108 - 0x0110: R13-R14 for mode fiq
+     0x0000 - 0x0040 : R0-R15
+	 0x0040          : CPSR
+	 0x0044          : SPSR
 
-   Program status registers (4 bytes each):
-   
-     0x0180: CPSR (current)
-	 0x0184: SPSR (current)
-	 0x0188: SPSR (svc)
-	 0x018C: SPSR (abt)
-	 0x0190: SPSR (und)
-	 0x0194: SPSR (irq)
-	 0x0198: SPSR (fiq)
+   Inactive registers:
+
+	 R13-R14,SPSR (group 1):
+	   0x0050 - 0x005c : set 0 (usr, sys)
+	   0x005c - 0x0068 : set 1 (svc)
+	   0x0068 - 0x0074 : set 2 (abt)
+	   0x0074 - 0x0080 : set 3 (und)
+	   0x0080 - 0x008c : set 4 (irq)
+	   0x008c - 0x0098 : set 5 (fiq)
+
+     R8-R12 (group 2):
+	   0x00a0 - 0x00b4 : set 0 (usr, sys, svc, abt, und, irq)
+	   0x00b4 - 0x00c8 : set 1 (fiq)
 
  ****************************************/
 
-#define ADDR_CPSR (0x0180)
+#define ADDR_CPSR (0x0040)
+#define ADDR_GROUP1 (0x0050)
+#define ADDR_GROUP2 (0x00a0)
 
 function Core (stdlib, foreign, heap)
 {
@@ -129,11 +127,14 @@ function Core (stdlib, foreign, heap)
 		wordView[ADDR_CPSR >> 2] = value;
 
 		if (S32 (oldMode) != S32 (newMode))
-		{
-			// copy current to old
-			log (LOG_ID, 12334, LOG_HEX, INT (oldMode), LOG_HEX, INT (newMode));
-			bail (13551345);
-		}
+			_switchWorkingSet (oldMode, newMode);
+	}
+
+	function _switchWorkingSet (oldMode, newMode)
+	{
+		// copy current to old
+		log (LOG_ID, 12334, LOG_HEX, INT (oldMode), LOG_HEX, INT (newMode));
+		bail (13551345);
 	}
 
 	function _isPrivileged ()
