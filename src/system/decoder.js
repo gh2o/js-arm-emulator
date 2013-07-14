@@ -382,7 +382,7 @@ var DECODER_TABLE = [
 	/* 0x02 */ ROW_0_1(MUL_MLA,UND,UND,UND),
 	/* 0x03 */ FILL16(UND),
 	/* 0x04 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x05 */ FILL16(UND),
+	/* 0x05 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x06 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x07 */ FILL16(UND),
 	/* 0x08 */ ROW_0_1(UND,UND,UND,UND),

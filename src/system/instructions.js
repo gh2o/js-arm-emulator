@@ -169,6 +169,9 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		case 5:
 			result = INT (base + operand + (cpsr >> 29 & 0x01));
 			break;
+		case 6:
+			result = INT (base - operand - (~cpsr >> 29 & 0x01));
+			break;
 		case 9:
 			result = base ^ operand;
 			break;
@@ -218,12 +221,13 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 						(!!carry << 29);
 					break;
 				case 2:
+				case 6:
 				case 10:
 					cpsr =
 						(cpsr & 0x0FFFFFFF) |
 						(result & (1 << 31)) |
 						((S32 (result) == 0) << 30) |
-						((U32 (base) >= U32 (operand)) << 29) |
+						(((base | ~operand) & (~operand | ~result) & (~result | base)) >> 2) & (1 << 29) |
 						(((base ^ operand) & (base ^ result)) >> 3) & (1 << 28);
 					break;
 				case 4:
