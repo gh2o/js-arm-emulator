@@ -130,6 +130,9 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		case 10:
 			result = INT (base - operand);
 			break;
+		case 3:
+			result = INT (operand - base);
+			break;
 		case 4:
 			result = INT (base + operand);
 			break;
