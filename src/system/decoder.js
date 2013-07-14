@@ -236,6 +236,21 @@ function SUBDECODER_FUNCTION (LDR_STR_LDRB_STRB_reg) (inst)
 	);
 }
 
+function SUBDECODER_FUNCTION (LDR_STR_misc_imm) (inst)
+{
+	PARAM_INT (inst);
+
+	return inst_LDR_STR_misc (
+		(inst >> 18 & 0x4) | (inst >> 5 & 0x3), // L/S/H
+		Rd,                                     // Rd
+		Rn,                                     // Rn
+		PACK_IMMEDIATE ((n8 << 4) | n0),        // offset register/immediate
+		inst & (1 << 24),                       // P
+		inst & (1 << 23),                       // U
+		inst & (1 << 21)                        // W
+	);
+}
+
 /****************************************
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
@@ -336,7 +351,7 @@ var DECODER_TABLE = [
 	/* 0x19 */ FILL16(UND),
 	/* 0x1A */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1B */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x1C */ ROW_0_1(UND,UND,UND,UND),
+	/* 0x1C */ ROW_0_1(UND,LDR_STR_misc_imm,UND,UND),
 	/* 0x1D */ FILL16(UND),
 	/* 0x1E */ FILL16(UND),
 	/* 0x1F */ FILL16(UND),

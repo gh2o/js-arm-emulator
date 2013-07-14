@@ -360,6 +360,60 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 	return STAT_OK;
 }
 
+function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
+{
+	PARAM_INT (LSH);
+	PARAM_INT (Rd);
+	PARAM_INT (Rn);
+	PARAM_INT (offset_immreg);
+	PARAM_INT (P);
+	PARAM_INT (U);
+	PARAM_INT (W);
+
+	var offset = 0;
+	var address = 0;
+	var wbaddress = 0;
+	var value = 0;
+
+	offset = DECODE_IMMEDIATE_REGISTER (offset_immreg);
+
+	// calculate addresses
+	address = getRegister (Rn);
+	if (U)
+		wbaddress = INT (address + offset);
+	else
+		wbaddress = INT (address - offset);
+	if (P | W) // not post-indexed
+		address = wbaddress;
+
+	switch (S32 (LSH))
+	{
+
+		case 1: // STRH
+			if (address & 1)
+				bail (392849); // unaligned access
+			value = getRegister (Rd);
+			writeByte (address, value & 0xFF);
+			if (memoryError)
+				bail (2384092);
+			writeByte (INT (address + 1), value >> 8 & 0xFF);
+			if (memoryError)
+				bail (2384093);
+			break;
+
+		default:
+			log (LOG_ID, 189351, LOG_SIGNED, S32 (LSH));
+			bail (189351);
+			return STAT_UND;
+	}
+
+	// writeback base register only if wbaddress is valid
+	if (S32 (!!P) == S32 (!!W))
+		setRegister (Rn, wbaddress);
+
+	return STAT_OK;
+}
+
 /****************************************
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
