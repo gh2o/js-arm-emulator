@@ -163,6 +163,26 @@ function SUBDECODER_FUNCTION(DATA_reg_imm) (inst)
 	);
 }
 
+function SUBDECODER_FUNCTION (DATA_reg_reg) (inst)
+{
+	PARAM_INT (inst);
+
+	var opcode = 0;
+
+	opcode = inst >> 21 & 0x0F;
+	VALIDATE_DATA ();
+
+	return inst_DATA (
+		opcode,             // opcode
+		Rd,                 // Rd
+		Rn,                 // Rn
+		PACK_REGISTER (Rm), // operand
+		PACK_REGISTER (Rs), // shift operand
+		(inst >> 5) & 0x03, // shift type
+		inst & (1 << 20)    // S
+	);
+}
+
 #undef VALIDATE_DATA
 
 /****************************************
@@ -328,7 +348,7 @@ function SUBDECODER_FUNCTION (UND) (inst)
 var DECODER_TABLE = [
 
 #define r01a SUBDECODER_FUNCTION(DATA_reg_imm)
-#define r01b SUBDECODER_FUNCTION(UND) /* SUBDECODER_FUNCTION(DATA_reg_reg) */
+#define r01b SUBDECODER_FUNCTION(DATA_reg_reg)
 #define ROW_0_1(q9,qb,qd,qf) r01a, r01b, r01a, r01b, \
                              r01a, r01b, r01a, r01b, \
                              r01a, SUBDECODER_FUNCTION(q9), r01a, SUBDECODER_FUNCTION(qb), \
@@ -469,7 +489,7 @@ var DECODER_TABLE = [
 	/* 0x79 */ ROW_6_7_LDR_STR(),
 	/* 0x7A */ FILL16(UND),
 	/* 0x7B */ FILL16(UND),
-	/* 0x7C */ FILL16(UND),
+	/* 0x7C */ ROW_6_7_LDR_STR(),
 	/* 0x7D */ ROW_6_7_LDR_STR(),
 	/* 0x7E */ FILL16(UND),
 	/* 0x7F */ FILL16(UND),
