@@ -10,6 +10,8 @@ function _readWordPeripheral (addr)
 {
 	PARAM_INT (addr);
 
+	log (LOG_ID, 2280799, LOG_HEX, S32 (addr));
+
 	if ((addr >> 12) == ~0) // system peripherals
 		return INT (systemPeripheralRead[addr >> 8 & 0x0F](addr & 0x1FF));
 	else if (addr >> 19 == ~0) // user peripherals
@@ -24,6 +26,8 @@ function _writeWordPeripheral (addr, value)
 	PARAM_INT (addr);
 	PARAM_INT (value);
 
+	log (LOG_ID, 2893192, LOG_HEX, S32 (addr));
+
 	if ((addr >> 12) == ~0) // system peripherals
 		systemPeripheralWrite[addr >> 8 & 0x0F](addr & 0x1FF, value);
 	else if (addr >> 19 == ~0) // user peripherals
@@ -32,21 +36,41 @@ function _writeWordPeripheral (addr, value)
 	bail (1893192);
 }
 
-function _undefinedPeripheralRead (addr)
+function _undefinedPeripheralRead (offset)
 {
-	PARAM_INT (addr);
+	PARAM_INT (offset);
 
+	log (LOG_ID, 2130657, LOG_HEX, S32 (offset));
 	bail (2130657);
 
 	return 0;
 }
 
-function _undefinedPeripheralWrite (addr, value)
+function _undefinedPeripheralWrite (offset, value)
 {
-	PARAM_INT (addr);
+	PARAM_INT (offset);
 	PARAM_INT (value);
 
+	log (LOG_ID, 2130668, LOG_HEX, S32 (offset));
 	bail (2130668);
+}
+
+function _pDBGURead (offset)
+{
+	PARAM_INT (offset);
+
+	switch (S32 (offset))
+	{
+		case 0x40:
+			memoryError = STAT_OK;
+			return 0x09290781;
+		case 0x44:
+			memoryError = STAT_OK;
+			return 0;
+	}
+
+	bail (19083921);
+	return 0;
 }
 #endif
 
@@ -56,8 +80,8 @@ function _undefinedPeripheralWrite (addr, value)
 var systemPeripheralRead = [
 	/*  0 */ und,
 	/*  1 */ und,
-	/*  2 */ und,
-	/*  3 */ und,
+	/*  2 */ _pDBGURead,
+	/*  3 */ _pDBGURead,
 	/*  4 */ und,
 	/*  5 */ und,
 	/*  6 */ und,
