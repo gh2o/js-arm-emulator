@@ -54,7 +54,8 @@ System.prototype.linkCore = function () {
 		}
 	};
 
-	return Core (window, foreign, system.heap);
+	var stdlib = (function () { return this; })();
+	return Core (stdlib, foreign, system.heap);
 
 	// include core here to avoid barrage of macros
 	#include "core.js"
