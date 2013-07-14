@@ -145,6 +145,9 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		case 14:
 			result = base & ~operand;
 			break;
+		case 15:
+			result = ~operand;
+			break;
 		default:
 			bail (928343);
 			break;
@@ -202,9 +205,28 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
  * STATUS REGISTER ACCESS INSTRUCTIONS  *
  ****************************************/
 
-function _inst_MSR (immreg, R, field_mask)
+function _inst_MRS (Rd, R)
+{
+	PARAM_INT (Rd);
+	PARAM_INT (R);
+
+	if (R)
+	{
+		// UNPREDICTABLE if no SPSR in current mode
+		bail (1356316);
+	}
+	else
+	{
+		setRegister (Rd, getCPSR ());
+	}
+
+	return STAT_OK;
+}
+
+function _inst_MSR (immreg, rotamt, R, field_mask)
 {
 	PARAM_INT (immreg);
+	PARAM_INT (rotamt);
 	PARAM_INT (R);
 	PARAM_INT (field_mask);
 
@@ -217,6 +239,7 @@ function _inst_MSR (immreg, R, field_mask)
 	var mask = 0;
 
 	operand = DECODE_IMMEDIATE_REGISTER (immreg);
+	operand = ROTATE_RIGHT (operand, rotamt);
 
 	mask =
 		((field_mask & 1) ? 0x000000FF : 0) |

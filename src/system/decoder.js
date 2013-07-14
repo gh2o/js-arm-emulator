@@ -159,16 +159,27 @@ function SUBDECODER_FUNCTION(DATA_reg_imm) (inst)
  * STATUS REGISTER ACCESS INSTRUCTIONS  *
  ****************************************/
 
+function SUBDECODER_FUNCTION (MRS) (inst)
+{
+	PARAM_INT (inst);
+	VASSERT (n0 == 0);
+	VASSERT (n8 == 0);
+	VASSERT (n16 == 15);
+	return inst_MRS (
+		Rd,              // Rd
+		inst & (1 << 22) // R
+	);
+}
+
 function SUBDECODER_FUNCTION (MSR_imm) (inst)
 {
 	PARAM_INT (inst);
 	VASSERT (n12 == 15);
 	return inst_MSR (
-		PACK_IMMEDIATE (
-			ROTATE_RIGHT (inst & 0xFF, n8 << 1)
-		),                // operand
-		inst & (1 << 22), // R
-		n16               // field_mask
+		PACK_IMMEDIATE (inst & 0xFF), // operand
+		n8 << 1,                      // rotate amount
+		inst & (1 << 22),             // R
+		n16                           // field_mask
 	);
 }
 
@@ -304,7 +315,7 @@ var DECODER_TABLE = [
 	/* 0x0D */ FILL16(UND),
 	/* 0x0E */ FILL16(UND),
 	/* 0x0F */ FILL16(UND),
-	/* 0x10 */ FILL16(UND),
+	/* 0x10 */ SUBDECODER_FUNCTION(MRS), und, und, und, und, und, und, und, und, und, und, und, und, und, und, und,
 	/* 0x11 */ FILL16(UND),
 	/* 0x12 */ FILL16(UND),
 	/* 0x13 */ ROW_0_1(UND,UND,UND,UND),
