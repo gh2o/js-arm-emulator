@@ -331,7 +331,6 @@ function _inst_LDM (Rn, register_list, addressing_mode, W)
 
 	var i = 0;
 	var ptr = 0;
-	var count = 0;
 
 	ptr = getRegister (Rn);
 	if (ptr & 0x03)
@@ -350,7 +349,6 @@ function _inst_LDM (Rn, register_list, addressing_mode, W)
 					if (memoryError)
 						bail (12982); // data abort
 					ptr = INT (ptr + 4);
-					count = INT (count + 1);
 				}
 			}
 			break;
@@ -360,11 +358,24 @@ function _inst_LDM (Rn, register_list, addressing_mode, W)
 			break;
 	}
 
-	if (W)
-		bail (31237612);
-
 	if (register_list & (1 << REG_PC))
 		setPC (getPC () & ~3);
+
+	if (W)
+	{
+		switch (S32 (addressing_mode))
+		{
+			case ADDRESSING_MODE_INCREMENT_BEFORE:
+				ptr = INT (ptr - 4);
+				break;
+			case ADDRESSING_MODE_INCREMENT_AFTER:
+				break;
+			default:
+				bail (31237612);
+				break;
+		}
+		setRegister (Rn, ptr);
+	}
 
 	return STAT_OK;
 }
