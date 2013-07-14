@@ -39,4 +39,4 @@ build/%.js: src/%.js
 	cpp $(CPPFLAGS) $< -o $@
 
 resources/%.dtb: resources/%.dts
-	./kbuild/scripts/dtc/dtc $< -o $@
+	./kbuild/scripts/dtc/dtc $< -o $@ -O dtb
