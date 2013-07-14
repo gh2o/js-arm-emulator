@@ -213,10 +213,12 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 			switch (S32 (opcode))
 			{
 				case 0:
+				case 1:
 				case 8:
 				case 9:
 				case 12:
 				case 13:
+				case 14:
 					cpsr = 
 						(cpsr & 0x1FFFFFFF) |
 						(result & (1 << 31)) |
@@ -384,6 +386,12 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 	{
 		case SHIFT_TYPE_LOGICAL_LEFT:
 			offset = offset << shift_amount;
+			break;
+		case SHIFT_TYPE_LOGICAL_RIGHT:
+			if (S32 (shift_amount) < 32)
+				offset = offset >>> shift_amount;
+			else
+				offset = 0;
 			break;
 		default:
 			bail (2851087);

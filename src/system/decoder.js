@@ -276,14 +276,33 @@ function SUBDECODER_FUNCTION (LDR_STR_LDRB_STRB_reg) (inst)
 {
 	PARAM_INT (inst);
 
+	var shift_type = 0;
+	var shift_amount = 0;
+
+	shift_type = (inst >> 5) & 0x03;
+	shift_amount = (inst >> 7) & 0x1F;
+
+	switch (S32 (shift_type))
+	{
+		case SHIFT_TYPE_LOGICAL_RIGHT:
+		case SHIFT_TYPE_ARITHMETIC_RIGHT:
+			if (S32 (shift_amount) == 0)
+				shift_amount = 32;
+			break;
+		case SHIFT_TYPE_ROTATE_RIGHT:
+			if (S32 (shift_amount) == 0)
+				shift_type = SHIFT_TYPE_ROTATE_WITH_EXTEND;
+			break;
+	}
+
 	return inst_LDR_STR_LDRB_STRB (
 		inst & (1 << 20),   // L
 		inst & (1 << 22),   // B
 		Rd,                 // Rd
 		Rn,                 // Rn
 		PACK_REGISTER (Rm), // offset register/immediate
-		(inst >> 5) & 0x03, // shift type
-		(inst >> 7) & 0x1F, // shift amount
+		shift_type,         // shift type
+		shift_amount,       // shift amount
 		inst & (1 << 24),   // P
 		inst & (1 << 23),   // U
 		inst & (1 << 21)    // W
@@ -404,7 +423,7 @@ var DECODER_TABLE = [
 	/* 0x0E */ FILL16(UND),
 	/* 0x0F */ FILL16(UND),
 	/* 0x10 */ SUBDECODER_FUNCTION(MRS), und, und, und, und, und, und, und, und, und, und, und, und, und, und, und,
-	/* 0x11 */ FILL16(UND),
+	/* 0x11 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x12 */ SUBDECODER_FUNCTION(MSR_reg), SUBDECODER_FUNCTION(BX), und, und, und, und, und, und, und, und, und, und, und, und, und, und,
 	/* 0x13 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x14 */ FILL16(UND),
@@ -412,7 +431,7 @@ var DECODER_TABLE = [
 	/* 0x16 */ FILL16(UND),
 	/* 0x17 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x18 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x19 */ ROW_0_1(UND,UND,UND,UND),
+	/* 0x19 */ ROW_0_1(UND,LDR_STR_misc_imm,UND,UND),
 	/* 0x1A */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1B */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1C */ ROW_0_1(UND,LDR_STR_misc_imm,UND,UND),
@@ -458,7 +477,7 @@ var DECODER_TABLE = [
 	/* 0x3F */ FILL16(DATA_imm),
 
 	/* 0x40 */ FILL16(UND),
-	/* 0x41 */ FILL16(UND),
+	/* 0x41 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x42 */ FILL16(UND),
 	/* 0x43 */ FILL16(UND),
 	/* 0x44 */ FILL16(UND),
@@ -477,7 +496,7 @@ var DECODER_TABLE = [
 	/* 0x50 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x51 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x52 */ FILL16(LDR_STR_LDRB_STRB_imm),
-	/* 0x53 */ FILL16(UND),
+	/* 0x53 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x54 */ FILL16(UND),
 	/* 0x55 */ FILL16(UND),
 	/* 0x56 */ FILL16(UND),
@@ -485,11 +504,11 @@ var DECODER_TABLE = [
 	/* 0x58 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x59 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5A */ FILL16(LDR_STR_LDRB_STRB_imm),
-	/* 0x5B */ FILL16(UND),
+	/* 0x5B */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5C */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5D */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5E */ FILL16(UND),
-	/* 0x5F */ FILL16(UND),
+	/* 0x5F */ FILL16(LDR_STR_LDRB_STRB_imm),
 
 #define r67a SUBDECODER_FUNCTION(LDR_STR_LDRB_STRB_reg), und
 #define ROW_6_7_LDR_STR() r67a, r67a, r67a, r67a, r67a, r67a, r67a, r67a
@@ -526,7 +545,7 @@ var DECODER_TABLE = [
 	/* 0x7C */ ROW_6_7_LDR_STR(),
 	/* 0x7D */ ROW_6_7_LDR_STR(),
 	/* 0x7E */ FILL16(UND),
-	/* 0x7F */ FILL16(UND),
+	/* 0x7F */ ROW_6_7_LDR_STR(),
 
 #undef r67a
 #undef ROW_6_7_LDR_STR
@@ -548,7 +567,7 @@ var DECODER_TABLE = [
 	/* 0x8E */ FILL16(UND),
 	/* 0x8F */ FILL16(UND),
 
-	/* 0x90 */ FILL16(UND),
+	/* 0x90 */ FILL16(LDM_STM),
 	/* 0x91 */ FILL16(LDM_STM),
 	/* 0x92 */ FILL16(LDM_STM),
 	/* 0x93 */ FILL16(UND),
@@ -556,7 +575,7 @@ var DECODER_TABLE = [
 	/* 0x95 */ FILL16(UND),
 	/* 0x96 */ FILL16(UND),
 	/* 0x97 */ FILL16(UND),
-	/* 0x98 */ FILL16(UND),
+	/* 0x98 */ FILL16(LDM_STM),
 	/* 0x99 */ FILL16(LDM_STM),
 	/* 0x9A */ FILL16(UND),
 	/* 0x9B */ FILL16(UND),

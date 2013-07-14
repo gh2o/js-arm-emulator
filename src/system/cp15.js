@@ -119,6 +119,9 @@ function _cp15_write (CRn, opcode_1, CRm, opcode_2, Rd)
 			{
 				switch (CRm << 4 | opcode_2)
 				{
+					case 0x50:
+						// UNIMPLEMENTED: invalidate instruction cache
+						return STAT_OK;
 					case 0x51:
 						// UNIMPLEMENTED: invalidate instruction cache line (MVA)
 						return STAT_OK;
@@ -131,6 +134,12 @@ function _cp15_write (CRn, opcode_1, CRm, opcode_2, Rd)
 					case 0xA4:
 						// UNIMPLEMENTED: data synchronization barrier
 						return STAT_OK;
+					case 0xE1:
+						// UNIMPLEMENTED: clean and invalidate data cache line (MVA)
+						return STAT_OK;
+					case 0xE2:
+						// UNIMPLEMENTED: clean and invalidate data cache line (set/way)
+						return STAT_OK;
 				}
 			}
 			break;
@@ -139,6 +148,12 @@ function _cp15_write (CRn, opcode_1, CRm, opcode_2, Rd)
 			{
 				switch (CRm << 4 | opcode_2)
 				{
+					case 0x50:
+						// UNIMPLEMENTED: invalidate instruction TLB
+						return STAT_OK;
+					case 0x60:
+						// UNIMPLEMENTED: invalidate data TLB
+						return STAT_OK;
 					case 0x70:
 						// UNIMPLEMENTED: invalidate all TLBs
 						return STAT_OK;
