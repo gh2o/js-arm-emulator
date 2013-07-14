@@ -47,6 +47,10 @@ System.prototype.linkCore = function () {
 			console.error ("=== PC: " + formatHex (system.getPC () - 4));
 			console.error ("=== CPSR: " + formatHex (system.getCPSR ()));
 			throw new Error ("Bail! (" + code + ")");
+		},
+		print: function (b) {
+			var op = document.getElementById ("output");
+			op.appendChild (document.createTextNode (String.fromCharCode (b)));
 		}
 	};
 

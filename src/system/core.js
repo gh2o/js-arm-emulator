@@ -71,6 +71,7 @@ function Core (stdlib, foreign, heap)
 	var imul = stdlib.Math.imul;
 	var log = foreign.log;
 	var bail = foreign.bail;
+	var print = foreign.print;
 
 #define CP15_INCLUDE_VARIABLES
 #include "cp15.js"

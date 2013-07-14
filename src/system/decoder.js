@@ -322,6 +322,16 @@ function SUBDECODER_FUNCTION (LDM_STM) (inst)
 }
 
 /****************************************
+ * EXCEPTION-GENERATING INSTRUCTIONS    *
+ ****************************************/
+
+function SUBDECODER_FUNCTION (SVC) (inst)
+{
+	PARAM_INT (inst);
+	return inst_SVC (inst & 0xFFFFFF);
+}
+
+/****************************************
  * COPROCESSOR INSTRUCTIONS             *
  ****************************************/
 
@@ -465,7 +475,7 @@ var DECODER_TABLE = [
 	/* 0x4F */ FILL16(UND),
 
 	/* 0x50 */ FILL16(UND),
-	/* 0x51 */ FILL16(UND),
+	/* 0x51 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x52 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x53 */ FILL16(UND),
 	/* 0x54 */ FILL16(UND),
@@ -648,22 +658,22 @@ var DECODER_TABLE = [
 #undef ro
 #undef ROW_E_ODD
 
-	/* 0xF0 */ FILL16(UND),
-	/* 0xF1 */ FILL16(UND),
-	/* 0xF2 */ FILL16(UND),
-	/* 0xF3 */ FILL16(UND),
-	/* 0xF4 */ FILL16(UND),
-	/* 0xF5 */ FILL16(UND),
-	/* 0xF6 */ FILL16(UND),
-	/* 0xF7 */ FILL16(UND),
-	/* 0xF8 */ FILL16(UND),
-	/* 0xF9 */ FILL16(UND),
-	/* 0xFA */ FILL16(UND),
-	/* 0xFB */ FILL16(UND),
-	/* 0xFC */ FILL16(UND),
-	/* 0xFD */ FILL16(UND),
-	/* 0xFE */ FILL16(UND),
-	/* 0xFF */ FILL16(UND)
+	/* 0xF0 */ FILL16(SVC),
+	/* 0xF1 */ FILL16(SVC),
+	/* 0xF2 */ FILL16(SVC),
+	/* 0xF3 */ FILL16(SVC),
+	/* 0xF4 */ FILL16(SVC),
+	/* 0xF5 */ FILL16(SVC),
+	/* 0xF6 */ FILL16(SVC),
+	/* 0xF7 */ FILL16(SVC),
+	/* 0xF8 */ FILL16(SVC),
+	/* 0xF9 */ FILL16(SVC),
+	/* 0xFA */ FILL16(SVC),
+	/* 0xFB */ FILL16(SVC),
+	/* 0xFC */ FILL16(SVC),
+	/* 0xFD */ FILL16(SVC),
+	/* 0xFE */ FILL16(SVC),
+	/* 0xFF */ FILL16(SVC)
 
 ];
 #undef FILL16

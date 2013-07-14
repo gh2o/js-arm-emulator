@@ -614,6 +614,41 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 }
 
 /****************************************
+ * EXCEPTION-GENERATING INSTRUCTIONS    *
+ ****************************************/
+
+function _inst_SVC (imm)
+{
+	PARAM_INT (imm);
+
+	var base = 0;
+	var chr = 0;
+
+	if (S32 (imm) == 0x123456)
+	{
+		switch (getRegister (REG_R0))
+		{
+			case 4:
+				base = getRegister (REG_R1);
+				while (1)
+				{
+					chr = readByte (base);
+					if (chr)
+						print (S32 (chr));
+					else
+						break;
+					base = INT (base + 1);
+				}
+				return STAT_OK;
+		}
+	}
+
+	// pass to OS
+	bail (1374190);
+	return STAT_UND;
+}
+
+/****************************************
  * COPROCESSOR INSTRUCTIONS             *
  ****************************************/
 
