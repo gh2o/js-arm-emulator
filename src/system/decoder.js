@@ -133,6 +133,7 @@ function SUBDECODER_FUNCTION(DATA_reg_imm) (inst)
 	switch (S32 (shift_type))
 	{
 		case SHIFT_TYPE_LOGICAL_RIGHT:
+		case SHIFT_TYPE_ARITHMETIC_RIGHT:
 			if (S32 (shift_imm) == 0)
 				shift_imm = 32;
 			break;
@@ -348,11 +349,11 @@ var DECODER_TABLE = [
 	/* 0x16 */ FILL16(UND),
 	/* 0x17 */ FILL16(UND),
 	/* 0x18 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x19 */ FILL16(UND),
+	/* 0x19 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1A */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1B */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1C */ ROW_0_1(UND,LDR_STR_misc_imm,UND,UND),
-	/* 0x1D */ ROW_0_1(UND,UND,UND,LDR_STR_misc_imm),
+	/* 0x1D */ ROW_0_1(UND,LDR_STR_misc_imm,UND,LDR_STR_misc_imm),
 	/* 0x1E */ FILL16(UND),
 	/* 0x1F */ FILL16(UND),
 #undef r01a

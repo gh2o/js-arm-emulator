@@ -107,6 +107,22 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 				}
 			}
 			break;
+		case SHIFT_TYPE_ARITHMETIC_RIGHT:
+			if (S32 (shift_operand) != 0)
+			{
+				if (S32 (shift_operand) < 32)
+				{
+					operand = operand >> (shift_operand - 1);
+					carry = operand & 1;
+					operand = operand >> 1;
+				}
+				else
+				{
+					carry = operand & (1 << 31);
+					operand = operand >> 31; // 0 if positive, -1 if negative
+				}
+			}
+			break;
 		case SHIFT_TYPE_ROTATE_RIGHT:
 			if (S32 (shift_operand) != 0)
 			{
@@ -134,6 +150,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 			result = INT (operand - base);
 			break;
 		case 4:
+		case 11:
 			result = INT (base + operand);
 			break;
 		case 9:
@@ -176,6 +193,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 				case 0:
 				case 8:
 				case 9:
+				case 12:
 				case 13:
 					cpsr = 
 						(cpsr & 0x1FFFFFFF) |
@@ -193,6 +211,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 						(((base ^ operand) & (base ^ result)) >> 3) & (1 << 28);
 					break;
 				case 4:
+				case 11:
 					cpsr = 
 						(cpsr & 0x0FFFFFFF) |
 						(result & (1 << 31)) |
@@ -401,6 +420,7 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 				bail (2384093);
 			break;
 
+		case 5: // LDRH
 		case 7: // LDRSH
 			if (address & 1)
 				bail (392850); // unaligned access
@@ -410,7 +430,10 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 			value = value | (readByte (INT (address + 1)) << 8);
 			if (memoryError)
 				bail (3465132);
-			setRegister (Rd, (value << 16) >> 16);
+			if (LSH & 0x2)
+				setRegister (Rd, (value << 16) >> 16);
+			else
+				setRegister (Rd, value);
 			break;
 
 		default:
