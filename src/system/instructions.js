@@ -343,7 +343,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 	ptr = origBase;
 	if (ptr & 0x03)
 		bail (13451701); // unaligned access
-	
+
 	// possible problem: assuming memoryError is STAT_OK on entry
 	switch (S32 (addressing_mode))
 	{
@@ -373,6 +373,32 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 			}
 			break;
 
+		case ADDRESSING_MODE_DECREMENT_BEFORE:
+			ptr = INT (ptr - 4);
+		case ADDRESSING_MODE_DECREMENT_AFTER:
+			for (i = 15; S32 (i) >= 0; i = INT (i - 1))
+			{
+				if (register_list & (1 << i))
+				{
+					if (L)
+					{
+						value = readWord (ptr);
+						if (memoryError)
+							break;
+						setRegister (i, S32 (i) == REG_PC ? value & ~3 : value); // mask if PC
+					}
+					else
+					{
+						value = getRegister (i);
+						writeWord (ptr, value);
+						if (memoryError)
+							break;
+					}
+					ptr = INT (ptr - 4);
+				}
+			}
+			break;
+
 		default:
 			bail (3258718);
 			break;
@@ -393,10 +419,8 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 			case ADDRESSING_MODE_INCREMENT_BEFORE:
 				ptr = INT (ptr - 4);
 				break;
-			case ADDRESSING_MODE_INCREMENT_AFTER:
-				break;
-			default:
-				bail (31237612);
+			case ADDRESSING_MODE_DECREMENT_BEFORE:
+				ptr = INT (ptr + 4);
 				break;
 		}
 		setRegister (Rn, ptr);
