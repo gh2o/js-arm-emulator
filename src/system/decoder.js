@@ -165,7 +165,7 @@ function SUBDECODER_FUNCTION (MSR_imm) (inst)
 	VASSERT (n12 == 15);
 	return inst_MSR (
 		PACK_IMMEDIATE (
-			ROTATE_RIGHT (inst & 0xFF, n8 + n8)
+			ROTATE_RIGHT (inst & 0xFF, n8 << 1)
 		),                // operand
 		inst & (1 << 22), // R
 		n16               // field_mask

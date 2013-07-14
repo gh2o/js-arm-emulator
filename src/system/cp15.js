@@ -8,6 +8,8 @@
 var cp15_SCTLR = 0;
 var cp15_DACR = 0;
 var cp15_TTBR0 = 0;
+var cp15_FSR = 0;
+var cp15_FAR = 0;
 #endif
 
 #ifdef CP15_INCLUDE_FUNCTIONS
@@ -16,6 +18,8 @@ function _cp15_reset ()
 	cp15_SCTLR = CP15_SCTLR_RESET;
 	cp15_DACR = 0;
 	cp15_TTBR0 = 0;
+	cp15_FSR = 0;
+	cp15_FAR = 0;
 }
 
 function _cp15_read (CRn, opcode_1, CRm, opcode_2, Rd)
