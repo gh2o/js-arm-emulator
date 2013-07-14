@@ -34,21 +34,26 @@
 
 	 R13-R14,SPSR (group 1):
 	   0x0050 - 0x005c : set 0 (usr, sys)
-	   0x005c - 0x0068 : set 1 (svc)
-	   0x0068 - 0x0074 : set 2 (abt)
-	   0x0074 - 0x0080 : set 3 (und)
-	   0x0080 - 0x008c : set 4 (irq)
-	   0x008c - 0x0098 : set 5 (fiq)
+	   0x0060 - 0x006c : set 1 (svc)
+	   0x0070 - 0x007c : set 2 (abt)
+	   0x0080 - 0x008c : set 3 (und)
+	   0x0090 - 0x009c : set 4 (irq)
+	   0x00a0 - 0x00ac : set 5 (fiq)
 
      R8-R12 (group 2):
-	   0x00a0 - 0x00b4 : set 0 (usr, sys, svc, abt, und, irq)
-	   0x00b4 - 0x00c8 : set 1 (fiq)
+	   0x00b0 - 0x00c4 : set 0 (usr, sys, svc, abt, und, irq)
+	   0x00d0 - 0x00e4 : set 1 (fiq)
 
  ****************************************/
 
 #define ADDR_CPSR (0x0040)
+#define ADDR_SPSR (0x0044)
 #define ADDR_GROUP1 (0x0050)
-#define ADDR_GROUP2 (0x00a0)
+#define ADDR_GROUP2 (0x00b0)
+#define SSHIFT_GROUP1 (4)
+#define SSHIFT_GROUP2 (5)
+#define STRIDE_GROUP1 (1 << SSHIFT_GROUP1)
+#define STRIDE_GROUP2 (1 << SSHIFT_GROUP2)
 
 function Core (stdlib, foreign, heap)
 {
@@ -132,9 +137,56 @@ function Core (stdlib, foreign, heap)
 
 	function _switchWorkingSet (oldMode, newMode)
 	{
-		// copy current to old
-		log (LOG_ID, 12334, LOG_HEX, INT (oldMode), LOG_HEX, INT (newMode));
-		bail (13551345);
+		PARAM_INT (oldMode);
+		PARAM_INT (newMode);
+
+		var oldG1 = 0;
+		var oldG2 = 0;
+		var newG1 = 0;
+		var newG2 = 0;
+		var base = 0;
+
+		switch (S32 (oldMode))
+		{
+			case MODE_usr:
+			case MODE_sys: oldG1 = 0; break;
+			case MODE_svc: oldG1 = 1; break;
+			case MODE_abt: oldG1 = 2; break;
+			case MODE_und: oldG1 = 3; break;
+			case MODE_irq: oldG1 = 4; break;
+			case MODE_fiq: oldG1 = 5; oldG2 = 1; break;
+			default: bail (32895017);
+		}
+
+		switch (S32 (newMode))
+		{
+			case MODE_usr:
+			case MODE_sys: newG1 = 0; break;
+			case MODE_svc: newG1 = 1; break;
+			case MODE_abt: newG1 = 2; break;
+			case MODE_und: newG1 = 3; break;
+			case MODE_irq: newG1 = 4; break;
+			case MODE_fiq: newG1 = 5; newG2 = 1; break;
+			default: bail (32895018);
+		}
+
+		if (S32 (oldG1) != S32 (newG1))
+		{
+			// current to old
+			base = INT (ADDR_GROUP1 + (oldG1 << SSHIFT_GROUP1));
+			wordView[(base + 0) >> 2] = getRegister (REG_R13);
+			wordView[(base + 4) >> 2] = getRegister (REG_R14);
+			wordView[(base + 8) >> 2] = wordView[ADDR_SPSR >> 2];
+
+			// new to current
+			base = INT (ADDR_GROUP1 + (newG1 << SSHIFT_GROUP1));
+			setRegister (REG_R13, INT (wordView[(base + 0) >> 2]));
+			setRegister (REG_R14, INT (wordView[(base + 4) >> 2]));
+			wordView[ADDR_SPSR >> 2] = wordView[(base + 8) >> 2];
+		}
+
+		if (S32 (oldG2) != S32 (newG2))
+			bail (310184);
 	}
 
 	function _isPrivileged ()

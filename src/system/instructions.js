@@ -266,7 +266,7 @@ function _inst_MUL_MLA (A, Rd, Rm, Rs, Rn, S)
 	PARAM_INT (S);
 
 	var result = 0;
-	result = imul (getRegister (Rm), getRegister (Rs));
+	result = INT (imul (getRegister (Rm), getRegister (Rs)));
 	if (A)
 		result = INT (result + getRegister (Rn));
 
