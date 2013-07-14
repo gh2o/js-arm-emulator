@@ -387,7 +387,7 @@ var DECODER_TABLE = [
                              r01a, r01b, r01a, r01b, \
                              r01a, SUBDECODER_FUNCTION(q9), r01a, SUBDECODER_FUNCTION(qb), \
                              r01a, SUBDECODER_FUNCTION(qd), r01a, SUBDECODER_FUNCTION(qf)
-	/* 0x00 */ ROW_0_1(UND,UND,UND,UND),
+	/* 0x00 */ ROW_0_1(MUL_MLA,UND,UND,UND),
 	/* 0x01 */ FILL16(UND),
 	/* 0x02 */ ROW_0_1(MUL_MLA,UND,UND,UND),
 	/* 0x03 */ FILL16(UND),
@@ -410,14 +410,14 @@ var DECODER_TABLE = [
 	/* 0x14 */ FILL16(UND),
 	/* 0x15 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x16 */ FILL16(UND),
-	/* 0x17 */ FILL16(UND),
+	/* 0x17 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x18 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x19 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1A */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1B */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1C */ ROW_0_1(UND,LDR_STR_misc_imm,UND,UND),
 	/* 0x1D */ ROW_0_1(UND,LDR_STR_misc_imm,UND,LDR_STR_misc_imm),
-	/* 0x1E */ FILL16(UND),
+	/* 0x1E */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1F */ FILL16(UND),
 #undef r01a
 #undef r01b
@@ -474,7 +474,7 @@ var DECODER_TABLE = [
 	/* 0x4E */ FILL16(UND),
 	/* 0x4F */ FILL16(UND),
 
-	/* 0x50 */ FILL16(UND),
+	/* 0x50 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x51 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x52 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x53 */ FILL16(UND),
@@ -484,7 +484,7 @@ var DECODER_TABLE = [
 	/* 0x57 */ FILL16(UND),
 	/* 0x58 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x59 */ FILL16(LDR_STR_LDRB_STRB_imm),
-	/* 0x5A */ FILL16(UND),
+	/* 0x5A */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5B */ FILL16(UND),
 	/* 0x5C */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5D */ FILL16(LDR_STR_LDRB_STRB_imm),
@@ -549,7 +549,7 @@ var DECODER_TABLE = [
 	/* 0x8F */ FILL16(UND),
 
 	/* 0x90 */ FILL16(UND),
-	/* 0x91 */ FILL16(UND),
+	/* 0x91 */ FILL16(LDM_STM),
 	/* 0x92 */ FILL16(LDM_STM),
 	/* 0x93 */ FILL16(UND),
 	/* 0x94 */ FILL16(UND),
@@ -557,7 +557,7 @@ var DECODER_TABLE = [
 	/* 0x96 */ FILL16(UND),
 	/* 0x97 */ FILL16(UND),
 	/* 0x98 */ FILL16(UND),
-	/* 0x99 */ FILL16(UND),
+	/* 0x99 */ FILL16(LDM_STM),
 	/* 0x9A */ FILL16(UND),
 	/* 0x9B */ FILL16(UND),
 	/* 0x9C */ FILL16(UND),
