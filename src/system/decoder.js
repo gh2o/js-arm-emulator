@@ -200,15 +200,13 @@ function SUBDECODER_FUNCTION (MSR_reg) (inst)
  * LOAD AND STORE INSTRUCTIONS          *
  ****************************************/
 
-function SUBDECODER_FUNCTION (LDR_STR_imm) (inst)
+function SUBDECODER_FUNCTION (LDR_STR_LDRB_STRB_imm) (inst)
 {
 	PARAM_INT (inst);
 
-	if (inst & (1 << 22)) // words only
-		bail (1309713);
-
-	return inst_LDR_STR (
+	return inst_LDR_STR_LDRB_STRB (
 		inst & (1 << 20),               // L
+		inst & (1 << 22),               // B
 		Rd,                             // Rd
 		Rn,                             // Rn
 		PACK_IMMEDIATE (inst & 0x0FFF), // offset register/immediate
@@ -220,15 +218,13 @@ function SUBDECODER_FUNCTION (LDR_STR_imm) (inst)
 	);
 }
 
-function SUBDECODER_FUNCTION (LDR_STR_reg) (inst)
+function SUBDECODER_FUNCTION (LDR_STR_LDRB_STRB_reg) (inst)
 {
 	PARAM_INT (inst);
 
-	if (inst & (1 << 22)) // words only
-		bail (1309714);
-
-	return inst_LDR_STR (
+	return inst_LDR_STR_LDRB_STRB (
 		inst & (1 << 20),   // L
+		inst & (1 << 22),   // B
 		Rd,                 // Rd
 		Rn,                 // Rn
 		PACK_REGISTER (Rm), // offset register/immediate
@@ -390,8 +386,8 @@ var DECODER_TABLE = [
 	/* 0x45 */ FILL16(UND),
 	/* 0x46 */ FILL16(UND),
 	/* 0x47 */ FILL16(UND),
-	/* 0x48 */ FILL16(LDR_STR_imm),
-	/* 0x49 */ FILL16(LDR_STR_imm),
+	/* 0x48 */ FILL16(LDR_STR_LDRB_STRB_imm),
+	/* 0x49 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x4A */ FILL16(UND),
 	/* 0x4B */ FILL16(UND),
 	/* 0x4C */ FILL16(UND),
@@ -407,16 +403,16 @@ var DECODER_TABLE = [
 	/* 0x55 */ FILL16(UND),
 	/* 0x56 */ FILL16(UND),
 	/* 0x57 */ FILL16(UND),
-	/* 0x58 */ FILL16(LDR_STR_imm),
-	/* 0x59 */ FILL16(LDR_STR_imm),
+	/* 0x58 */ FILL16(LDR_STR_LDRB_STRB_imm),
+	/* 0x59 */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5A */ FILL16(UND),
 	/* 0x5B */ FILL16(UND),
 	/* 0x5C */ FILL16(UND),
-	/* 0x5D */ FILL16(UND),
+	/* 0x5D */ FILL16(LDR_STR_LDRB_STRB_imm),
 	/* 0x5E */ FILL16(UND),
 	/* 0x5F */ FILL16(UND),
 
-#define r67a SUBDECODER_FUNCTION(LDR_STR_reg), und
+#define r67a SUBDECODER_FUNCTION(LDR_STR_LDRB_STRB_reg), und
 #define ROW_6_7_LDR_STR() r67a, r67a, r67a, r67a, r67a, r67a, r67a, r67a
 
 	/* 0x60 */ FILL16(UND),

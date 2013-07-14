@@ -282,10 +282,11 @@ function _inst_MSR (immreg, rotamt, R, field_mask)
  * LOAD AND STORE INSTRUCTIONS          *
  ****************************************/
 
-function _inst_LDR_STR (L, Rd, Rn, offset_immreg,
+function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 	shift_type, shift_amount, P, U, W)
 {
 	PARAM_INT (L);
+	PARAM_INT (B);
 	PARAM_INT (Rd);
 	PARAM_INT (Rn);
 	PARAM_INT (offset_immreg);
@@ -321,14 +322,18 @@ function _inst_LDR_STR (L, Rd, Rn, offset_immreg,
 		address = wbaddress;
 
 	// TODO: unaligned access
-	if (address & 3)
-		bail (9028649);
+	if (!B)
+		if (address & 3)
+			bail (9028649);
 
 	// do the access
 	if (L)
 	{
 		// LDR
-		value = readWord (address);
+		if (B)
+			value = readByte (address) & 0xFF;
+		else
+			value = readWord (address);
 		if (memoryError)
 			bail (12984); // data abort
 		setRegister (Rd, S32 (Rd) == REG_PC ? value & ~3 : value); // mask if PC
@@ -337,7 +342,10 @@ function _inst_LDR_STR (L, Rd, Rn, offset_immreg,
 	{
 		// STR
 		value = getRegister (Rd);
-		writeWord (address, value);
+		if (B)
+			writeByte (address, value & 0xFF);
+		else
+			writeWord (address, value);
 		if (memoryError)
 			bail (12985); // data abort
 	}

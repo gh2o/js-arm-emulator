@@ -9,7 +9,6 @@ function _readWordPhysical (addr)
 	PARAM_INT (addr);
 
 	var offset = 0;
-	var value = 0;
 
 	// TODO: unaligned accesses
 	if ((addr & 0x03) != 0)
@@ -17,10 +16,7 @@ function _readWordPhysical (addr)
 
 	offset = memoryAddressToHeapOffset (addr);
 	if (U32 (offset) >= U32 (memorySize))
-	{
-		log (LOG_ID, 2138, LOG_HEX, S32 (addr), LOG_HEX, S32 (offset));
 		bail (2138);
-	}
 
 	memoryError = STAT_OK;
 	return INT (wordView[offset >> 2]);
@@ -43,6 +39,35 @@ function _writeWordPhysical (addr, value)
 
 	memoryError = STAT_OK;
 	wordView[offset >> 2] = value;
+}
+
+function _readBytePhysical (addr)
+{
+	PARAM_INT (addr);
+
+	var offset = 0;
+
+	offset = memoryAddressToHeapOffset (addr);
+	if (U32 (offset) >= U32 (memorySize))
+		bail (3138);
+
+	memoryError = STAT_OK;
+	return INT (byteView[needSwap ? offset ^ 3 : offset] & 0xFF);
+}
+
+function _writeBytePhysical (addr, value)
+{
+	PARAM_INT (addr);
+	PARAM_INT (value);
+
+	var offset = 0;
+
+	offset = memoryAddressToHeapOffset (addr);
+	if (U32 (offset) >= U32 (memorySize))
+		bail (3139);
+
+	memoryError = STAT_OK;
+	byteView[needSwap ? offset ^ 3 : offset] = value & 0xFF;
 }
 
 function _readWord (addr)
@@ -72,6 +97,35 @@ function _writeWord (addr, value)
 	}
 
 	writeWordPhysical (addr, value);
+}
+
+function _readByte (addr)
+{
+	PARAM_INT (addr);
+
+	if (cp15_SCTLR & CP15_SCTLR_M)
+	{
+		addr = translateAddress (addr, TRANSLATE_READ);
+		if (memoryError)
+			return 0;
+	}
+	
+	return readBytePhysical (addr);
+}
+
+function _writeByte (addr, value)
+{
+	PARAM_INT (addr);
+	PARAM_INT (value);
+
+	if (cp15_SCTLR & CP15_SCTLR_M)
+	{
+		addr = translateAddress (addr, TRANSLATE_WRITE);
+		if (memoryError)
+			return;
+	}
+
+	writeBytePhysical (addr, value);
 }
 
 #define dtype (desc1 & 3)

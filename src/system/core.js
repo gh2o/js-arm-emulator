@@ -59,6 +59,8 @@ function Core (stdlib, foreign, heap)
 	var wordView = new stdlib.Int32Array (heap);
 	var byteView = new stdlib.Uint8Array (heap);
 
+	var needSwap = INT (foreign.needSwap);
+
 	var memoryOffset = INT (foreign.memoryOffset);
 	var memorySize = INT (foreign.memorySize);
 	var memoryError = 0;

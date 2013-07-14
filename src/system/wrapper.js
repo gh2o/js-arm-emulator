@@ -9,6 +9,7 @@ System.prototype.linkCore = function () {
 	var system = this;
 
 	var foreign = {
+		needSwap: Number (system.needSwap),
 		memorySize: system.options.memorySize,
 		memoryOffset: system.options.memoryOffset,
 		log: function () {
