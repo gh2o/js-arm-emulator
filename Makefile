@@ -1,14 +1,14 @@
 COMMON := build/util.js build/system.js build/system/wrapper.js
-OUTPUTS := output/debian.js
+OUTPUTS := output/www.js
 CPPFLAGS := -nostdinc -undef -P
 
-all: output/debian.js resources/devicetree.dtb
+all: output/www.js resources/devicetree.dtb
 
 run: all
 	xdotool search '^JS Debian - ' | xargs -I: xdotool key --window : F5
 
 validate: all
-	./js -c output/debian.js
+	./js -c output/www.js
 
 clean:
 	rm -rf .depends build output
