@@ -166,6 +166,9 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		case 11:
 			result = INT (base + operand);
 			break;
+		case 5:
+			result = INT (base + operand + (cpsr >> 29 & 0x01));
+			break;
 		case 9:
 			result = base ^ operand;
 			break;
