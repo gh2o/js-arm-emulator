@@ -3,6 +3,7 @@
 
 #define inst_B(...) FUNC_INT(inst_B,__VA_ARGS__)
 #define inst_BL(...) FUNC_INT(inst_BL,__VA_ARGS__)
+#define inst_BX(...) FUNC_INT(inst_BX,__VA_ARGS__)
 #define inst_DATA(...) FUNC_INT(inst_DATA,__VA_ARGS__)
 #define inst_MRS(...) FUNC_INT(inst_MRS,__VA_ARGS__)
 #define inst_MSR(...) FUNC_INT(inst_MSR,__VA_ARGS__)

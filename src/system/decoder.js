@@ -79,6 +79,15 @@ function SUBDECODER_FUNCTION (BL) (inst)
 	);
 }
 
+function SUBDECODER_FUNCTION (BX) (inst)
+{
+	PARAM_INT (inst);
+	VASSERT (n16 == 15);
+	VASSERT (n12 == 15);
+	VASSERT (n8 == 15);
+	return inst_BX (Rm);
+}
+
 /****************************************
  * DATA PROCESSING INSTRUCTIONS         *
  ****************************************/
@@ -342,7 +351,7 @@ var DECODER_TABLE = [
 	/* 0x0F */ FILL16(UND),
 	/* 0x10 */ SUBDECODER_FUNCTION(MRS), und, und, und, und, und, und, und, und, und, und, und, und, und, und, und,
 	/* 0x11 */ FILL16(UND),
-	/* 0x12 */ SUBDECODER_FUNCTION(MSR_reg), und, und, und, und, und, und, und, und, und, und, und, und, und, und, und,
+	/* 0x12 */ SUBDECODER_FUNCTION(MSR_reg), SUBDECODER_FUNCTION(BX), und, und, und, und, und, und, und, und, und, und, und, und, und, und,
 	/* 0x13 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x14 */ FILL16(UND),
 	/* 0x15 */ ROW_0_1(UND,UND,UND,UND),

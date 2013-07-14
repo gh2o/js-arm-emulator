@@ -20,6 +20,19 @@ function _inst_BL (offset)
 	return STAT_OK;
 }
 
+function _inst_BX (Rm)
+{
+	PARAM_INT (Rm);
+
+	var target = 0;
+	target = getRegister (Rm);
+	if (target & 1)
+		bail (2837103); // thumb not supported
+
+	setPC (target & ~1);
+	return STAT_OK;
+}
+
 /****************************************
  * DATA PROCESSING INSTRUCTIONS         *
  ****************************************/
