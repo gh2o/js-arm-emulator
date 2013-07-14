@@ -332,6 +332,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 
 	var i = 0;
 	var ptr = 0;
+	var value = 0;
 
 	ptr = getRegister (Rn);
 	if (ptr & 0x03)
@@ -349,9 +350,20 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 			{
 				if (register_list & (1 << i))
 				{
-					setRegister (i, readWord (ptr));
-					if (memoryError)
-						bail (12982); // data abort
+					if (L)
+					{
+						value = readWord (ptr);
+						if (memoryError)
+							bail (12982); // data abort
+						setRegister (i, S32 (i) == REG_PC ? value & ~3 : value); // mask if PC
+					}
+					else
+					{
+						value = getRegister (i);
+						writeWord (ptr, value);
+						if (memoryError)
+							bail (12984); // data abort
+					}
 					ptr = INT (ptr + 4);
 				}
 			}
