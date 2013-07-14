@@ -4,6 +4,7 @@
 #include "core.inc"
 #include "instructions.inc"
 #include "mmu.inc"
+#include "peripherals.inc"
 #include "../common.inc"
 #include "../system.inc"
 
@@ -278,9 +279,17 @@ function Core (stdlib, foreign, heap)
 #include "cp15.js"
 #undef CP15_INCLUDE_FUNCTIONS
 
+#define PERIPHERALS_INCLUDE_FUNCTIONS
+#include "peripherals.js"
+#undef PERIPHERALS_INCLUDE_FUNCTIONS
+
 #define DECODER_INCLUDE_TABLES
 #include "decoder.js"
 #undef DECODER_INCLUDE_TABLES
+
+#define PERIPHERALS_INCLUDE_TABLES
+#include "peripherals.js"
+#undef PERIPHERALS_INCLUDE_TABLES
 
 	return {
 		getPC: _getPC,

@@ -676,6 +676,7 @@ var DECODER_TABLE = [
 	/* 0xFF */ FILL16(SVC)
 
 ];
+#undef und
 #undef FILL16
 #undef _FILL16
 #endif

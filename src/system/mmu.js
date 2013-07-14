@@ -12,11 +12,14 @@ function _readWordPhysical (addr)
 
 	// TODO: unaligned accesses
 	if ((addr & 0x03) != 0)
+	{
+		log (LOG_ID, 2136, LOG_HEX, S32 (addr));
 		bail (2136);
+	}
 
 	offset = memoryAddressToHeapOffset (addr);
 	if (U32 (offset) >= U32 (memorySize))
-		bail (2138);
+		return INT (readWordPeripheral (addr));
 
 	memoryError = STAT_OK;
 	return INT (wordView[offset >> 2]);
@@ -31,11 +34,17 @@ function _writeWordPhysical (addr, value)
 
 	// TODO: unaligned accesses
 	if ((addr & 0x03) != 0)
+	{
+		log (LOG_ID, 2137, LOG_HEX, S32 (addr));
 		bail (2137);
+	}
 
 	offset = memoryAddressToHeapOffset (addr);
 	if (U32 (offset) >= U32 (memorySize))
-		bail (2139);
+	{
+		writeWordPeripheral (addr, value);
+		return;
+	}
 
 	memoryError = STAT_OK;
 	wordView[offset >> 2] = value;
@@ -49,7 +58,7 @@ function _readBytePhysical (addr)
 
 	offset = memoryAddressToHeapOffset (addr);
 	if (U32 (offset) >= U32 (memorySize))
-		bail (3138);
+		return INT (readWordPeripheral (addr) & 0xFF);
 
 	memoryError = STAT_OK;
 	return INT (byteView[needSwap ? offset ^ 3 : offset] & 0xFF);
@@ -64,7 +73,10 @@ function _writeBytePhysical (addr, value)
 
 	offset = memoryAddressToHeapOffset (addr);
 	if (U32 (offset) >= U32 (memorySize))
-		bail (3139);
+	{
+		writeWordPeripheral (addr, value & 0xFF);
+		return;
+	}
 
 	memoryError = STAT_OK;
 	byteView[needSwap ? offset ^ 3 : offset] = value & 0xFF;
@@ -228,7 +240,7 @@ function _translateAddress (vaddr, trtype)
 					permitted = !!isPrivileged ()
 					break;
 				case 2:
-					permitted = !(trType & TRANSLATE_WRITE) | !!isPrivileged ();
+					permitted = !(trtype & TRANSLATE_WRITE) | !!isPrivileged ();
 					break;
 				case 3:
 					permitted = 1;
