@@ -10,6 +10,7 @@ var pAIC_SPU = 0;
 var pAIC_IMR = 0;
 var pAIC_IPR = 0;
 var pST_IMR = 0;
+var pST_PIMR = 0;
 var pST_PIT = 0;
 var pST_PIT_timestamp = 0.0;
 var pST_RTMR = 0;
@@ -229,7 +230,7 @@ function _pSTGetCRTR ()
 	slowClockCycles = ~~(elapsedMillis * 32.768);
 
 	retVal = INT (pST_CRTR + INT (S32 (slowClockCycles) / S32 (effectiveDivider)));
-	return retVal & 0x0FFFFF;
+	return INT (retVal & 0x0FFFFF);
 }
 
 function _pSTRead (offset)
@@ -264,7 +265,7 @@ function _pSTWrite (offset, value)
 	{
 		case 0x04: // ST_PIMR
 			pST_PIMR = value & 0xFFFF;
-			pST_PIT = pST_PIMR;
+			pST_PIT = pST_PIMR; // FIXME: call function to update PIT instead
 			pST_PIT_timestamp = DBL (getMilliseconds ());
 			memoryError = STAT_OK;
 			return;
