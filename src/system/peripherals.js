@@ -29,9 +29,15 @@ function _writeWordPeripheral (addr, value)
 	log (LOG_ID, 2893192, LOG_HEX, S32 (addr));
 
 	if ((addr >> 12) == ~0) // system peripherals
+	{
 		systemPeripheralWrite[addr >> 8 & 0x0F](addr & 0x1FF, value);
+		return;
+	}
 	else if (addr >> 19 == ~0) // user peripherals
+	{
 		userPeripheralWrite[addr >> 14 & 0x1F](addr & 0x3FFF, value);
+		return;
+	}
 
 	bail (1893192);
 }
@@ -72,6 +78,47 @@ function _pDBGURead (offset)
 	bail (19083921);
 	return 0;
 }
+
+function _pPMCRead (offset)
+{
+	PARAM_INT (offset);
+
+	switch (S32 (offset))
+	{
+		case 0x24: // CKGR_MCFR
+			memoryError = STAT_OK;
+			return (1 << 16) | 512;
+		case 0x28: // CKGR_PLLAR
+		case 0x2C: // CKGR_PLLBR
+			memoryError = STAT_OK;
+			return 0x3F00;
+		case 0x30: // CKGR_MCKR
+			memoryError = STAT_OK;
+			return 0x01; // main clock, no prescaler, no division
+	}
+
+	bail (19083932);
+	return 0;
+}
+
+function _pPMCWrite (offset, value)
+{
+	PARAM_INT (offset);
+	PARAM_INT (value);
+
+	switch (S32 (offset))
+	{
+		case 0x00: // PMC_SCER
+			memoryError = STAT_OK;
+			return;
+		case 0x28: // CKGR_PLLAR
+		case 0x2C: // CKGR_PLLBR
+			memoryError = STAT_OK;
+			return;
+	}
+
+	bail (9823127);
+}
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_TABLES
@@ -90,7 +137,7 @@ var systemPeripheralRead = [
 	/*  9 */ und,
 	/* 10 */ und,
 	/* 11 */ und,
-	/* 12 */ und,
+	/* 12 */ _pPMCRead,
 	/* 13 */ und,
 	/* 14 */ und,
 	/* 15 */ und
@@ -145,7 +192,7 @@ var systemPeripheralWrite = [
 	/*  9 */ und,
 	/* 10 */ und,
 	/* 11 */ und,
-	/* 12 */ und,
+	/* 12 */ _pPMCWrite,
 	/* 13 */ und,
 	/* 14 */ und,
 	/* 15 */ und
