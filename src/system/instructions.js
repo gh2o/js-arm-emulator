@@ -175,6 +175,9 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		case 6:
 			result = INT (base - operand - (~cpsr >> 29 & 0x01));
 			break;
+		case 7:
+			result = INT (operand - base - (~cpsr >> 29 & 0x01));
+			break;
 		case 9:
 			result = base ^ operand;
 			break;
@@ -824,6 +827,6 @@ function _inst_MRC (Rd, cp_num, CRn, opcode_1, CRm, opcode_2)
 		return cp15_read (CRn, opcode_1, CRm, opcode_2, Rd);
 
 	// for annotation, and if nothing satisfies
-	bail (86414);
+	bail (86415);
 	return STAT_UND;
 }
