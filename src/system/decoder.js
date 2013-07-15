@@ -339,6 +339,23 @@ function SUBDECODER_FUNCTION (LDR_STR_misc_imm) (inst)
 	);
 }
 
+function SUBDECODER_FUNCTION (LDR_STR_misc_reg) (inst)
+{
+	PARAM_INT (inst);
+
+	VASSERT (n8 == 0);
+
+	return inst_LDR_STR_misc (
+		(inst >> 18 & 0x4) | (inst >> 5 & 0x3), // L/S/H
+		Rd,                                     // Rd
+		Rn,                                     // Rn
+		PACK_REGISTER (Rm),                     // offset register/immediate
+		inst & (1 << 24),                       // P
+		inst & (1 << 23),                       // U
+		inst & (1 << 21)                        // W
+	);
+}
+
 /****************************************
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
@@ -451,7 +468,7 @@ var DECODER_TABLE = [
 	/* 0x09 */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,UND,UND,UND),
 	/* 0x0A */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,UND,UND,UND),
 	/* 0x0B */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,UND,UND,UND),
-	/* 0x0C */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,UND,UND,UND),
+	/* 0x0C */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,LDR_STR_misc_imm,UND,UND),
 	/* 0x0D */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,UND,UND,UND),
 	/* 0x0E */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,UND,UND,UND),
 	/* 0x0F */ ROW_0_1(SMULL_SMLAL_UMULL_UMLAL,UND,UND,UND),
@@ -467,7 +484,7 @@ var DECODER_TABLE = [
 	/* 0x15 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x16 */ FILL16(UND),
 	/* 0x17 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x18 */ ROW_0_1(UND,UND,UND,UND),
+	/* 0x18 */ ROW_0_1(UND,LDR_STR_misc_reg,UND,UND),
 	/* 0x19 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1A */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1B */ ROW_0_1(UND,UND,UND,UND),
