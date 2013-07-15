@@ -44,6 +44,10 @@
      R8-R12 (group 2):
 	   0x00b0 - 0x00c4 : set 0 (usr, sys, svc, abt, und, irq)
 	   0x00d0 - 0x00e4 : set 1 (fiq)
+   
+   Peripherals:
+
+     AIC: 0x0100 - 0x0200
 
  ****************************************/
 
@@ -77,6 +81,10 @@ function Core (stdlib, foreign, heap)
 #define CP15_INCLUDE_VARIABLES
 #include "cp15.js"
 #undef CP15_INCLUDE_VARIABLES
+
+#define PERIPHERALS_INCLUDE_VARIABLES
+#include "peripherals.js"
+#undef PERIPHERALS_INCLUDE_VARIABLES
 
 	function _reset ()
 	{

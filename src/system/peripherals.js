@@ -5,6 +5,12 @@
  System peripherals : 1111 1111 1111 1111 1111 xxxx 0000 0000
  ************************************************************/
 
+#ifdef PERIPHERALS_INCLUDE_VARIABLES
+var pAIC_SPU = 0;
+var pAIC_IMR = 0;
+var pAIC_IPR = 0;
+#endif
+
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
 function _readWordPeripheral (addr)
 {
@@ -59,6 +65,41 @@ function _undefinedPeripheralWrite (offset, value)
 
 	log (LOG_ID, 2130668, LOG_HEX, S32 (offset));
 	bail (2130668);
+}
+
+function _pAICWrite (offset, value)
+{
+	PARAM_INT (offset);
+	PARAM_INT (value);
+
+	if ((offset & 0xFFFFFF83) == 0x80)
+	{
+	}
+
+	switch (S32 (offset))
+	{
+		case 0x124: // AIC_IDCR;
+			pAIC_IMR = pAIC_IMR & ~value;
+			memoryError = STAT_OK;
+			return;
+		case 0x128: // AIC_ICCR
+			pAIC_IPR = pAIC_IPR & ~value;
+			memoryError = STAT_OK;
+			return;
+		case 0x130: // AIC_EOICR
+			memoryError = STAT_OK;
+			return;
+		case 0x134: // AIC_SPU
+			pAIC_SPU = value;
+			memoryError = STAT_OK;
+			return;
+		case 0x138: // AIC_DCR
+			memoryError = STAT_OK;
+			return;
+	}
+
+	log (LOG_ID, 3451122, LOG_HEX, S32 (offset));
+	bail (3451122);
 }
 
 function _pDBGURead (offset)
@@ -180,8 +221,8 @@ var userPeripheralRead = [
 
 #define und _undefinedPeripheralWrite
 var systemPeripheralWrite = [
-	/*  0 */ und,
-	/*  1 */ und,
+	/*  0 */ _pAICWrite,
+	/*  1 */ _pAICWrite,
 	/*  2 */ und,
 	/*  3 */ und,
 	/*  4 */ und,
