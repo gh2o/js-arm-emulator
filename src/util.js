@@ -20,28 +20,29 @@ if (!Math.imul)
 var getMilliseconds = (function () {
 
 	var func;
-	var last = null;
+	var begin = null;
 
-	if (typeof process !== "undefined") // node.js
+	if (typeof process !== "undefined")
 	{
+		// node.js
+		begin = process.hrtime ();
 		func = function () {
-
-			var ret = 0;
 			var now = process.hrtime ();
-
-			if (last !== null)
-				ret = (now[0] - last[0]) * 1e3 + (now[1] - last[1]) * 1e-6;
-
-			last = now;
-			return ret;
-
+			ret = (now[0] - begin[0]) * 1e3 + (now[1] - begin[1]) * 1e-6;
 		};
 	}
-	else // browser
+	else if (typeof performance !== "undefined" && (performance.now || performance.webkitNow))
 	{
-		func = function () { return +(new Date); };
-		if (typeof performance !== "undefined")
-			func = performance.now || performance.webkitNow || func;
+		// performance API
+		var nowfunc = performance.now || performance.webkitNow;
+		begin = nowfunc ();
+		func = function () { return nowfunc () - begin; };
+	}
+	else
+	{
+		// generic javascript
+		begin = +(new Date);
+		func = function () { return +(new Date) - begin; };
 	}
 
 	function getNanoseconds () { return func (); }

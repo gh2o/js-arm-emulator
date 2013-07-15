@@ -10,7 +10,11 @@ var pAIC_SPU = 0;
 var pAIC_IMR = 0;
 var pAIC_IPR = 0;
 var pST_IMR = 0;
-var pST_SR_lastRead = -1.0;
+var pST_PIT = 0;
+var pST_PIT_timestamp = 0.0;
+var pST_RTMR = 0;
+var pST_CRTR = 0;
+var pST_CRTR_timestamp = 0.0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -116,6 +120,10 @@ function _pAICWrite (offset, value)
 
 	switch (S32 (offset))
 	{
+		case 0x120: // AIC_IECR
+			pAIC_IMR = pAIC_IMR | value;
+			memoryError = STAT_OK;
+			return;
 		case 0x124: // AIC_IDCR;
 			pAIC_IMR = pAIC_IMR & ~value;
 			memoryError = STAT_OK;
@@ -203,6 +211,27 @@ function _pPMCWrite (offset, value)
 	bail (9823127);
 }
 
+function _pSTCommitCRTR ()
+{
+	pST_CRTR = INT (_pSTGetCRTR ());
+	pST_CRTR_timestamp = DBL (getMilliseconds ());
+}
+
+function _pSTGetCRTR ()
+{
+	var effectiveDivider = 0;
+	var elapsedMillis = 0.0;
+	var slowClockCycles = 0;
+	var retVal = 0;
+
+	effectiveDivider = pST_RTMR ? pST_RTMR : 65536;
+	elapsedMillis = DBL (getMilliseconds ()) - pST_CRTR_timestamp;
+	slowClockCycles = ~~(elapsedMillis * 32.768);
+
+	retVal = INT (pST_CRTR + INT (S32 (slowClockCycles) / S32 (effectiveDivider)));
+	return retVal & 0x0FFFFF;
+}
+
 function _pSTRead (offset)
 {
 	PARAM_INT (offset);
@@ -212,11 +241,12 @@ function _pSTRead (offset)
 	switch (S32 (offset))
 	{
 		case 0x10: // ST_SR
-			if (pST_SR_lastRead >= 0.0)
-				bail (21132);
-			pST_SR_lastRead = +now ();
 			memoryError = STAT_OK;
-			return 0x0F;
+			log (LOG_ID, 351432);
+			return 0x0; // FIXME!!!!
+		case 0x24: // ST_CRTR
+			memoryError = STAT_OK;
+			return INT (_pSTGetCRTR ());
 	}
 
 	bail (390841);
@@ -232,6 +262,21 @@ function _pSTWrite (offset, value)
 
 	switch (S32 (offset))
 	{
+		case 0x04: // ST_PIMR
+			pST_PIMR = value & 0xFFFF;
+			pST_PIT = pST_PIMR;
+			pST_PIT_timestamp = DBL (getMilliseconds ());
+			memoryError = STAT_OK;
+			return;
+		case 0x0C: // ST_RTMR
+			_pSTCommitCRTR ();
+			pST_RTMR = value & 0xFFFF;
+			memoryError = STAT_OK;
+			return;
+		case 0x14: // ST_IER
+			pST_IMR = pST_IMR | value;
+			memoryError = STAT_OK;
+			return;
 		case 0x18: // ST_IDR
 			pST_IMR = pST_IMR & ~value;
 			memoryError = STAT_OK;

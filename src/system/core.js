@@ -25,7 +25,7 @@ function Core (stdlib, foreign, heap)
 	var log = foreign.log;
 	var bail = foreign.bail;
 	var print = foreign.print;
-	var now = foreign.now;
+	var getMilliseconds = foreign.getMilliseconds;
 
 #define CP15_INCLUDE_VARIABLES
 #include "cp15.js"

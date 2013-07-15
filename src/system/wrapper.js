@@ -51,7 +51,7 @@ System.prototype.linkCore = function () {
 		print: function (b) {
 			system.onConsoleByte (b & 0xFF);
 		},
-		now: getMilliseconds
+		getMilliseconds: getMilliseconds
 	};
 
 	var stdlib = (function () { return this; })();
