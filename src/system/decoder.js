@@ -468,7 +468,7 @@ var DECODER_TABLE = [
 	/* 0x16 */ FILL16(UND),
 	/* 0x17 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x18 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x19 */ ROW_0_1(UND,LDR_STR_misc_imm,UND,UND),
+	/* 0x19 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1A */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1B */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x1C */ ROW_0_1(UND,LDR_STR_misc_imm,UND,UND),
