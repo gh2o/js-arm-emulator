@@ -297,6 +297,84 @@ function _inst_MUL_MLA (A, Rd, Rm, Rs, Rn, S)
 	return STAT_OK;
 }
 
+function _inst_UMULL_UMLAL (A, RdHi, RdLo, Rm, Rs, S)
+{
+	PARAM_INT (A);
+	PARAM_INT (RdHi);
+	PARAM_INT (RdLo);
+	PARAM_INT (Rm);
+	PARAM_INT (Rs);
+	PARAM_INT (S);
+
+	// inputs
+	var alo = 0;
+	var ahi = 0;
+	var blo = 0;
+	var bhi = 0;
+
+	// results
+	var rlo = 0;
+	var rhi = 0;
+
+	// temporary
+	var rtm = 0;
+
+	// accumulation
+	var clo = 0;
+	var chi = 0;
+
+	alo = getRegister (Rm);
+	ahi = alo >>> 16;
+	alo = alo & 0xFFFF;
+
+	blo = getRegister (Rs);
+	bhi = blo >>> 16;
+	blo = blo & 0xFFFF;
+
+	// calculate bases
+	rlo = INT (imul (alo, blo));
+	rhi = INT (imul (ahi, bhi));
+
+	// add (ahi * blo) * 2^16
+	rtm = INT (imul (ahi, blo));
+	rhi = INT (rhi + (rtm >>> 16));
+	rtm = rtm << 16;
+	rlo = INT (rlo + rtm);
+	rhi = INT (rhi + (U32 (rlo) < U32 (rtm)));
+
+	// add (alo * bhi) * 2^16
+	rtm = INT (imul (alo, bhi));
+	rhi = INT (rhi + (rtm >>> 16));
+	rtm = rtm << 16;
+	rlo = INT (rlo + rtm);
+	rhi = INT (rhi + (U32 (rlo) < U32 (rtm)));
+
+	// accumulate if necessary
+	if (A)
+	{
+		clo = getRegister (RdLo);
+		chi = getRegister (RdHi);
+		rlo = INT (rlo + clo);
+		rhi = INT (rhi + chi + (U32 (rlo) < U32 (clo)));
+	}
+
+	// writeback
+	setRegister (RdLo, rlo);
+	setRegister (RdHi, rhi);
+
+	// flags if necessary
+	if (S)
+	{
+		setCPSR (
+			(getCPSR () & 0x3FFFFFFF) |
+			(rhi & (1 << 31)) |
+			(((rhi | rlo) == 0) << 30)
+		);
+	}
+
+	return STAT_OK;
+}
+
 /****************************************
  * STATUS REGISTER ACCESS INSTRUCTIONS  *
  ****************************************/
@@ -613,6 +691,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 		setRegister (Rn, origBase);
 		setPC (origPC);
 		bail (12982);
+		return STAT_ABT;
 	}
 
 	if (W)

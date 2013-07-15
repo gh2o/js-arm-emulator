@@ -209,6 +209,20 @@ function SUBDECODER_FUNCTION (MUL_MLA) (inst)
 	);
 }
 
+function SUBDECODER_FUNCTION (UMULL_UMLAL) (inst)
+{
+	PARAM_INT (inst);
+
+	return inst_UMULL_UMLAL (
+		inst & (1 << 21), // accumulate (UMLAL)
+		n16,              // RdHi
+		n12,              // RdLo
+		Rm,               // Rm (multiplicand 1)
+		Rs,               // Rs (multiplicand 2)
+		inst & (1 << 20)  // S
+	);
+}
+
 /****************************************
  * STATUS REGISTER ACCESS INSTRUCTIONS  *
  ****************************************/
@@ -414,10 +428,10 @@ var DECODER_TABLE = [
 	/* 0x05 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x06 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x07 */ FILL16(UND),
-	/* 0x08 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x09 */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x0A */ ROW_0_1(UND,UND,UND,UND),
-	/* 0x0B */ FILL16(UND),
+	/* 0x08 */ ROW_0_1(UMULL_UMLAL,UND,UND,UND),
+	/* 0x09 */ ROW_0_1(UMULL_UMLAL,UND,UND,UND),
+	/* 0x0A */ ROW_0_1(UMULL_UMLAL,UND,UND,UND),
+	/* 0x0B */ ROW_0_1(UMULL_UMLAL,UND,UND,UND),
 	/* 0x0C */ FILL16(UND),
 	/* 0x0D */ FILL16(UND),
 	/* 0x0E */ FILL16(UND),
