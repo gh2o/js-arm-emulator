@@ -301,8 +301,9 @@ function _inst_MUL_MLA (A, Rd, Rm, Rs, Rn, S)
 	return STAT_OK;
 }
 
-function _inst_UMULL_UMLAL (A, RdHi, RdLo, Rm, Rs, S)
+function _inst_SMULL_SMLAL_UMULL_UMLAL (signed, A, RdHi, RdLo, Rm, Rs, S)
 {
+	PARAM_INT (signed);
 	PARAM_INT (A);
 	PARAM_INT (RdHi);
 	PARAM_INT (RdLo);
@@ -327,6 +328,7 @@ function _inst_UMULL_UMLAL (A, RdHi, RdLo, Rm, Rs, S)
 	var clo = 0;
 	var chi = 0;
 
+	// fill inputs
 	alo = getRegister (Rm);
 	ahi = alo >>> 16;
 	alo = alo & 0xFFFF;
@@ -334,6 +336,13 @@ function _inst_UMULL_UMLAL (A, RdHi, RdLo, Rm, Rs, S)
 	blo = getRegister (Rs);
 	bhi = blo >>> 16;
 	blo = blo & 0xFFFF;
+
+	// flip sign bit if signed
+	if (signed)
+	{
+		ahi = ahi ^ (1 << 15);
+		bhi = bhi ^ (1 << 15);
+	}
 
 	// calculate bases
 	rlo = INT (imul (alo, blo));
@@ -352,6 +361,30 @@ function _inst_UMULL_UMLAL (A, RdHi, RdLo, Rm, Rs, S)
 	rtm = rtm << 16;
 	rlo = INT (rlo + rtm);
 	rhi = INT (rhi + (U32 (rlo) < U32 (rtm)));
+
+	// fix value if signed
+	if (signed)
+	{
+		// subtract 2^62
+		rhi = INT (rhi - (1 << 30));
+
+		// subtract middle low
+		if ((alo ^ blo) & 1)
+		{
+			rlo = rlo ^ (1 << 31);
+			if (rlo & (1 << 31))
+				rhi = INT (rhi - 1);
+		}
+
+		// subtract middle high
+		rhi = INT (rhi - ((alo + blo) >>> 1));
+		rhi = INT (rhi - ((ahi + bhi) << 15));
+
+		// unflip sign bit
+		rhi = rhi ^ (1 << 31);
+
+		console.log ("<<SMULL>>: " + getRegister (Rm) + " * " + getRegister (Rs) + " = " + rhi + ", " + rlo);
+	}
 
 	// accumulate if necessary
 	if (A)
@@ -588,6 +621,13 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 				setRegister (Rd, (value << 16) >> 16);
 			else
 				setRegister (Rd, value);
+			break;
+
+		case 6: // LDRSB
+			value = readByte (address);
+			if (memoryError)
+				bail (9082095);
+			setRegister (Rd, (value << 24) >> 24);
 			break;
 
 		default:
