@@ -244,12 +244,13 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 						(((operand ^ base) & (operand ^ result)) >> 3) & (1 << 28);
 					break;
 				case 4:
+				case 5:
 				case 11:
 					cpsr = 
 						(cpsr & 0x0FFFFFFF) |
 						(result & (1 << 31)) |
 						((S32 (result) == 0) << 30) |
-						((U32 (result) < U32 (base)) << 29) |
+						(((base & operand) | (operand & ~result) | (~result & base)) >> 2) & (1 << 29) |
 						(((base ^ result) & (operand ^ result)) >> 3) & (1 << 28);
 					break;
 				default:
