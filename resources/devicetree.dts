@@ -3,7 +3,7 @@
 
 / {
 	chosen {
-		bootargs = "earlyprintk debug";
+		bootargs = "earlyprintk debug console=ttyS0";
 	};
 
 	memory {
