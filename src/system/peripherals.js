@@ -9,6 +9,8 @@
 var pAIC_SPU = 0;
 var pAIC_IMR = 0;
 var pAIC_IPR = 0;
+var pST_IMR = 0;
+var pST_SR_lastRead = -1.0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -67,13 +69,49 @@ function _undefinedPeripheralWrite (offset, value)
 	bail (2130668);
 }
 
+function _pAICRead (offset)
+{
+	PARAM_INT (offset);
+
+	if ((offset & 0xFFFFFF83) == 0x00)
+	{
+		// AIC_SMRn registers
+		memoryError = STAT_OK;
+		return INT (wordView[(ADDR_AIC + offset) >> 2]);
+	}
+
+	if ((offset & 0xFFFFFF83) == 0x80)
+	{
+		// AIC_SVRn registers
+		memoryError = STAT_OK;
+		return INT (wordView[(ADDR_AIC + offset) >> 2]);
+	}
+
+	log (LOG_ID, 3451124, LOG_HEX, S32 (offset));
+	bail (3451124);
+
+	return 0;
+}
+
 function _pAICWrite (offset, value)
 {
 	PARAM_INT (offset);
 	PARAM_INT (value);
 
+	if ((offset & 0xFFFFFF83) == 0x00)
+	{
+		// AIC_SMRn registers
+		wordView[(ADDR_AIC + offset) >> 2] = value & 0x67;
+		memoryError = STAT_OK;
+		return;
+	}
+
 	if ((offset & 0xFFFFFF83) == 0x80)
 	{
+		// AIC_SVRn registers
+		wordView[(ADDR_AIC + offset) >> 2] = value;
+		memoryError = STAT_OK;
+		return;
 	}
 
 	switch (S32 (offset))
@@ -124,6 +162,8 @@ function _pPMCRead (offset)
 {
 	PARAM_INT (offset);
 
+	offset = offset & 0xFF;
+
 	switch (S32 (offset))
 	{
 		case 0x24: // CKGR_MCFR
@@ -147,6 +187,8 @@ function _pPMCWrite (offset, value)
 	PARAM_INT (offset);
 	PARAM_INT (value);
 
+	offset = offset & 0xFF;
+
 	switch (S32 (offset))
 	{
 		case 0x00: // PMC_SCER
@@ -160,14 +202,52 @@ function _pPMCWrite (offset, value)
 
 	bail (9823127);
 }
+
+function _pSTRead (offset)
+{
+	PARAM_INT (offset);
+
+	offset = offset & 0xFF;
+
+	switch (S32 (offset))
+	{
+		case 0x10: // ST_SR
+			if (pST_SR_lastRead >= 0.0)
+				bail (21132);
+			pST_SR_lastRead = +now ();
+			memoryError = STAT_OK;
+			return 0x0F;
+	}
+
+	bail (390841);
+	return 0;
+}
+
+function _pSTWrite (offset, value)
+{
+	PARAM_INT (offset);
+	PARAM_INT (value);
+
+	offset = offset & 0xFF;
+
+	switch (S32 (offset))
+	{
+		case 0x18: // ST_IDR
+			pST_IMR = pST_IMR & ~value;
+			memoryError = STAT_OK;
+			return;
+	}
+
+	bail (8823126);
+}
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_TABLES
 
 #define und _undefinedPeripheralRead
 var systemPeripheralRead = [
-	/*  0 */ und,
-	/*  1 */ und,
+	/*  0 */ _pAICRead,
+	/*  1 */ _pAICRead,
 	/*  2 */ _pDBGURead,
 	/*  3 */ _pDBGURead,
 	/*  4 */ und,
@@ -179,7 +259,7 @@ var systemPeripheralRead = [
 	/* 10 */ und,
 	/* 11 */ und,
 	/* 12 */ _pPMCRead,
-	/* 13 */ und,
+	/* 13 */ _pSTRead,
 	/* 14 */ und,
 	/* 15 */ und
 ];
@@ -234,7 +314,7 @@ var systemPeripheralWrite = [
 	/* 10 */ und,
 	/* 11 */ und,
 	/* 12 */ _pPMCWrite,
-	/* 13 */ und,
+	/* 13 */ _pSTWrite,
 	/* 14 */ und,
 	/* 15 */ und
 ];

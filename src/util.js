@@ -16,3 +16,35 @@ if (!Math.imul)
 		return ((al * bl) + ((ah * bl + al * bh) << 16)) | 0;
 	};
 }
+
+var getMilliseconds = (function () {
+
+	var func;
+	var last = null;
+
+	if (typeof process !== "undefined") // node.js
+	{
+		func = function () {
+
+			var ret = 0;
+			var now = process.hrtime ();
+
+			if (last !== null)
+				ret = (now[0] - last[0]) * 1e3 + (now[1] - last[1]) * 1e-6;
+
+			last = now;
+			return ret;
+
+		};
+	}
+	else // browser
+	{
+		func = function () { return +(new Date); };
+		if (typeof performance !== "undefined")
+			func = performance.now || performance.webkitNow || func;
+	}
+
+	function getNanoseconds () { return func (); }
+	return getNanoseconds;
+
+})();
