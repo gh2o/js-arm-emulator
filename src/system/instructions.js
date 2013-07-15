@@ -713,6 +713,44 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 }
 
 /****************************************
+ * SEMAPHORE INSTRUCTIONS               *
+ ****************************************/
+
+function _inst_SWP_SWPB (B, Rd, Rm, Rn)
+{
+	PARAM_INT (B);
+	PARAM_INT (Rd);
+	PARAM_INT (Rm);
+	PARAM_INT (Rn);
+
+	var base = 0;
+	var toreg = 0;
+	var tomem = 0;
+
+	base = getRegister (Rn);
+
+	// read values
+	tomem = getRegister (Rm);
+	if (B)
+		toreg = readByte (base) & 0xFF;
+	else
+		toreg = readWord (base);
+	if (memoryError)
+		bail (3283017);
+
+	// write values
+	setRegister (Rd, toreg);
+	if (B)
+		writeByte (base, tomem & 0xFF);
+	else
+		writeWord (base, tomem);
+	if (memoryError)
+		bail (4283019);
+
+	return STAT_OK;
+}
+
+/****************************************
  * EXCEPTION-GENERATING INSTRUCTIONS    *
  ****************************************/
 

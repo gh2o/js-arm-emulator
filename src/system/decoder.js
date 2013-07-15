@@ -355,6 +355,24 @@ function SUBDECODER_FUNCTION (LDM_STM) (inst)
 }
 
 /****************************************
+ * SEMAPHORE INSTRUCTIONS               *
+ ****************************************/
+
+function SUBDECODER_FUNCTION (SWP_SWPB) (inst)
+{
+	PARAM_INT (inst);
+
+	VASSERT (n8 == 0);
+
+	return inst_SWP_SWPB (
+		inst & (1 << 22), // B (SWPB)
+		Rd,               // Rd
+		Rm,               // Rm
+		Rn                // Rn
+	);
+}
+
+/****************************************
  * EXCEPTION-GENERATING INSTRUCTIONS    *
  ****************************************/
 
@@ -436,7 +454,11 @@ var DECODER_TABLE = [
 	/* 0x0D */ FILL16(UND),
 	/* 0x0E */ FILL16(UND),
 	/* 0x0F */ FILL16(UND),
-	/* 0x10 */ SUBDECODER_FUNCTION(MRS), und, und, und, und, und, und, und, und, und, und, und, und, und, und, und,
+	/* 0x10 */
+		SUBDECODER_FUNCTION(MRS), und, und, und,
+		und, und, und, und,
+		und, SUBDECODER_FUNCTION(SWP_SWPB), und, und,
+		und, und, und, und,
 	/* 0x11 */ ROW_0_1(UND,UND,UND,UND),
 	/* 0x12 */ SUBDECODER_FUNCTION(MSR_reg), SUBDECODER_FUNCTION(BX), und, und, und, und, und, und, und, und, und, und, und, und, und, und,
 	/* 0x13 */ ROW_0_1(UND,UND,UND,UND),

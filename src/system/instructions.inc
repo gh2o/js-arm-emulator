@@ -12,6 +12,7 @@
 #define inst_LDR_STR_LDRB_STRB(...) FUNC_INT(inst_LDR_STR_LDRB_STRB,__VA_ARGS__)
 #define inst_LDR_STR_misc(...) FUNC_INT(inst_LDR_STR_misc,__VA_ARGS__)
 #define inst_LDM_STM(...) FUNC_INT(inst_LDM_STM,__VA_ARGS__)
+#define inst_SWP_SWPB(...) FUNC_INT(inst_SWP_SWPB,__VA_ARGS__)
 #define inst_SVC(...) FUNC_INT(inst_SVC,__VA_ARGS__)
 #define inst_MCR(...) FUNC_INT(inst_MCR,__VA_ARGS__)
 #define inst_MRC(...) FUNC_INT(inst_MRC,__VA_ARGS__)
