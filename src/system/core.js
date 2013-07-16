@@ -5,6 +5,7 @@
 #include "instructions.inc"
 #include "mmu.inc"
 #include "peripherals.inc"
+#include "irq.inc"
 #include "../common.inc"
 #include "../system.inc"
 
@@ -20,6 +21,7 @@ function Core (stdlib, foreign, heap)
 	var memoryOffset = INT (foreign.memoryOffset);
 	var memorySize = INT (foreign.memorySize);
 	var memoryError = 0;
+	var tickCount = 0;
 
 	var imul = stdlib.Math.imul;
 	var log = foreign.log;
@@ -169,6 +171,11 @@ function Core (stdlib, foreign, heap)
 
 		for (;numInstructions; numInstructions = INT (numInstructions - 1))
 		{
+			// increment tick counter, check for IRQs every few ticks
+			if ((tickCount & 0x1F) == 0)
+				irqPoll ();
+			tickCount = INT (tickCount + 1);
+
 			// get and advance program counter
 			pc = getPC ();
 			setPC (INT (pc + 4));
@@ -235,6 +242,8 @@ function Core (stdlib, foreign, heap)
 #define CP15_INCLUDE_FUNCTIONS
 #include "cp15.js"
 #undef CP15_INCLUDE_FUNCTIONS
+
+#include "irq.js"
 
 #define PERIPHERALS_INCLUDE_FUNCTIONS
 #include "peripherals.js"
