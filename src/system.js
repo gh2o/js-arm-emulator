@@ -46,7 +46,7 @@ function System (options)
 	this.setRegister = this.core.setRegister;
 	this.getCPSR = this.core.getCPSR;
 	this.setCPSR = this.core.setCPSR;
-	this.tick = this.core.tick;
+	this.run = this.core.run;
 }
 
 System.prototype.needSwap = (function () {

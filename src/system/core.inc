@@ -10,7 +10,7 @@
 #define setCPSR(v) FUNC_VOID(setCPSR,v)
 #define isPrivileged() FUNC_INT(isPrivileged)
 #define memoryAddressToHeapOffset(a) FUNC_INT(memoryAddressToHeapOffset,a)
-#define tick(n) FUNC_VOID(tick,n)
+#define run(n) FUNC_VOID(run,n)
 #define execute(i) FUNC_INT(execute,i)
 #define subexecute(i) FUNC_INT(subexecute,i)
 

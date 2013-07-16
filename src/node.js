@@ -33,4 +33,4 @@ system.setRegister (REG_R1, ~0);
 system.setRegister (REG_R2, 0x21000000);
 
 while (1)
-	system.tick (1000);
+	system.run (1000);

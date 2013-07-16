@@ -159,7 +159,7 @@ function Core (stdlib, foreign, heap)
 		return INT (addr - memoryOffset + MEMORY_START);
 	}
 
-	function _tick (numInstructions)
+	function _run (numInstructions)
 	{
 		PARAM_INT (numInstructions);
 
@@ -256,6 +256,6 @@ function Core (stdlib, foreign, heap)
 		getCPSR: _getCPSR,
 		setCPSR: _setCPSR,
 		reset: _reset,
-		tick: _tick
+		run: _run
 	};
 }

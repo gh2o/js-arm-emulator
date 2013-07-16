@@ -76,5 +76,5 @@ function bootstrap ()
 
 function tick ()
 {
-	system.tick (10000);
+	system.run (10000);
 }
