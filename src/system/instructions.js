@@ -443,7 +443,7 @@ function _inst_MSR (immreg, rotamt, R, field_mask)
 
 #define UnallocMask 0x0FFFFF20
 #define UserMask    0xF0000000
-#define PrivMask    0x0000000F
+#define PrivMask    0x000000DF
 #define StateMask   0x0
 
 	var operand = 0;
