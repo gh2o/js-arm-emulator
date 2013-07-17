@@ -9,10 +9,11 @@
 var pAIC_SPU = 0;
 var pAIC_IMR = 0;
 var pAIC_IPR = 0;
+var pAIC_priomask = 0;
 var pST_IMR = 0;
 var pST_PIMR = 0;
 var pST_PIT = 0;
-var pST_PIT_timestamp = 0.0;
+var pST_PIT_expiration = 0.0;
 var pST_RTMR = 0;
 var pST_CRTR = 0;
 var pST_CRTR_timestamp = 0.0;
@@ -72,6 +73,18 @@ function _undefinedPeripheralWrite (offset, value)
 
 	log (LOG_ID, 2130668, LOG_HEX, S32 (offset));
 	bail (2130668);
+}
+
+function _pAICGetPriority (n)
+{
+	PARAM_INT (n);
+	return INT (wordView[(ADDR_AIC + (n << 2)) >> 2] & 0x07);
+}
+
+function _pAICGetType (n)
+{
+	PARAM_INT (n);
+	return INT (wordView[(ADDR_AIC + (n << 2)) >> 2] >> 5 & 0x03);
 }
 
 function _pAICRead (offset)
@@ -264,8 +277,8 @@ function _pSTWrite (offset, value)
 	{
 		case 0x04: // ST_PIMR
 			pST_PIMR = value & 0xFFFF;
-			pST_PIT = pST_PIMR; // FIXME: call function to update PIT instead
-			pST_PIT_timestamp = DBL (getMilliseconds ());
+			pST_PIT = pST_PIMR ? pST_PIMR : 65536;
+			pST_PIT_expiration = DBL (getMilliseconds ()) + DBL (S32 (pST_PIT)) / 32.768;
 			memoryError = STAT_OK;
 			return;
 		case 0x0C: // ST_RTMR
