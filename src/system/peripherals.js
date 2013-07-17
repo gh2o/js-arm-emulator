@@ -212,25 +212,23 @@ function _pPMCWrite (offset, value)
 	bail (9823127);
 }
 
-function _pSTCommitCRTR ()
+function _pSTUpdateCRTR ()
 {
-	pST_CRTR = INT (_pSTGetCRTR ());
-	pST_CRTR_timestamp = DBL (getMilliseconds ());
-}
-
-function _pSTGetCRTR ()
-{
+	// RTC ticks/ms = SLCK ticks/ms / divider
 	var effectiveDivider = 0;
-	var elapsedMillis = 0.0;
-	var slowClockCycles = 0;
-	var retVal = 0;
-
+	var ticksPerMillisecond = 0.0;
+	var elapsedTicks = 0;
+	
 	effectiveDivider = pST_RTMR ? pST_RTMR : 65536;
-	elapsedMillis = DBL (getMilliseconds ()) - pST_CRTR_timestamp;
-	slowClockCycles = ~~(elapsedMillis * 32.768);
+	ticksPerMillisecond = 32.768 / DBL (S32 (effectiveDivider));
+	elapsedTicks = ~~((DBL (getMilliseconds ()) - pST_CRTR_timestamp) * ticksPerMillisecond);
 
-	retVal = INT (pST_CRTR + INT (S32 (slowClockCycles) / S32 (effectiveDivider)));
-	return INT (retVal & 0x0FFFFF);
+	// add back if tick elapsed
+	if (S32 (elapsedTicks) > 0)
+	{
+		pST_CRTR = (pST_CRTR + elapsedTicks) & 0x0FFFFF;
+		pST_CRTR_timestamp = pST_CRTR_timestamp + DBL (S32 (elapsedTicks)) / ticksPerMillisecond;
+	}
 }
 
 function _pSTRead (offset)
@@ -247,7 +245,8 @@ function _pSTRead (offset)
 			return 0x0; // FIXME!!!!
 		case 0x24: // ST_CRTR
 			memoryError = STAT_OK;
-			return INT (_pSTGetCRTR ());
+			_pSTUpdateCRTR ();
+			return INT (pST_CRTR);
 	}
 
 	bail (390841);
@@ -270,7 +269,7 @@ function _pSTWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x0C: // ST_RTMR
-			_pSTCommitCRTR ();
+			_pSTUpdateCRTR (); // lock in old divider first
 			pST_RTMR = value & 0xFFFF;
 			memoryError = STAT_OK;
 			return;
