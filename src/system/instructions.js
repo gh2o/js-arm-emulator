@@ -420,17 +420,7 @@ function _inst_MRS (Rd, R)
 {
 	PARAM_INT (Rd);
 	PARAM_INT (R);
-
-	if (R)
-	{
-		// UNPREDICTABLE if no SPSR in current mode
-		bail (1356316);
-	}
-	else
-	{
-		setRegister (Rd, getCPSR ());
-	}
-
+	setRegister (Rd, R ? getSPSR () : getCPSR ());
 	return STAT_OK;
 }
 
@@ -462,7 +452,7 @@ function _inst_MSR (immreg, rotamt, R, field_mask)
 	{
 		// UNPREDICTABLE if no SPSR in current mode
 		mask = mask & (UserMask | PrivMask | StateMask);
-		bail (1356315);
+		setSPSR ((getSPSR () & ~mask) | (operand & mask));
 	}
 	else
 	{
