@@ -28,7 +28,7 @@ var getMilliseconds = (function () {
 		begin = process.hrtime ();
 		func = function () {
 			var now = process.hrtime ();
-			ret = (now[0] - begin[0]) * 1e3 + (now[1] - begin[1]) * 1e-6;
+			return (now[0] - begin[0]) * 1e3 + (now[1] - begin[1]) * 1e-6;
 		};
 	}
 	else if (typeof performance !== "undefined" && (performance.now || performance.webkitNow))
