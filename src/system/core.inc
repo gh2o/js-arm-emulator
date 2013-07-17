@@ -8,6 +8,8 @@
 #define setRegister(r,v) FUNC_VOID(setRegister,r,v)
 #define getCPSR() FUNC_INT(getCPSR)
 #define setCPSR(v) FUNC_VOID(setCPSR,v)
+#define getSPSR() FUNC_INT(getSPSR)
+#define setSPSR(v) FUNC_VOID(setSPSR,v)
 #define isPrivileged() FUNC_INT(isPrivileged)
 #define memoryAddressToHeapOffset(a) FUNC_INT(memoryAddressToHeapOffset,a)
 #define triggerException(m) FUNC_VOID(triggerException,m)

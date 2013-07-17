@@ -96,6 +96,16 @@ function Core (stdlib, foreign, heap)
 			_switchWorkingSet (oldMode, newMode);
 	}
 
+	function _getSPSR ()
+	{
+		return INT (wordView[ADDR_SPSR >> 2]);
+	}
+
+	function _setSPSR (value)
+	{
+		wordView[ADDR_SPSR >> 2] = value;
+	}
+
 	function _switchWorkingSet (oldMode, newMode)
 	{
 		PARAM_INT (oldMode);
@@ -185,7 +195,7 @@ function Core (stdlib, foreign, heap)
 		tgt = tgt | ((cp15_SCTLR & CP15_SCTLR_V) ? 0xFFFF0000 : 0);
 
 		setCPSR (cpsr);
-		wordView[ADDR_SPSR >> 2] = spsr;
+		setSPSR (spsr);
 		setRegister (REG_LR, INT (getPC () + 4));
 		setRegister (REG_PC, tgt);
 	}
