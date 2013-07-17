@@ -206,8 +206,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 		if (S32 (Rd) == REG_PC)
 		{
 			// TODO: potential security problem
-			// set CPSR from SPSR and switch modes
-			bail (3019203);
+			setCPSR (getSPSR ());
 		}
 		else
 		{
