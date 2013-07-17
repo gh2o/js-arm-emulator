@@ -161,6 +161,35 @@ function Core (stdlib, foreign, heap)
 		return INT (addr - memoryOffset + MEMORY_START);
 	}
 
+	function _triggerException (mode)
+	{
+		PARAM_INT (mode);
+
+		var cpsr = 0;
+		var spsr = 0;
+		var tgt = 0;
+
+		cpsr = getCPSR ();
+		spsr = cpsr;
+
+		switch (mode)
+		{
+			case MODE_irq:
+				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
+				tgt =  0x18;
+				break;
+			default:
+				bail (2904175);
+		}
+
+		tgt = tgt | ((cp15_SCTLR & CP15_SCTLR_V) ? 0xFFFF0000 : 0);
+
+		setCPSR (cpsr);
+		wordView[ADDR_SPSR >> 2] = spsr;
+		setRegister (REG_LR, INT (getPC () + 4));
+		setRegister (REG_PC, tgt);
+	}
+
 	function _run (numInstructions)
 	{
 		PARAM_INT (numInstructions);
