@@ -149,6 +149,7 @@ function _translateAddress (vaddr, trtype)
 
 	var desc1 = 0;
 	var desc2 = 0;
+	var ap = 0;
 	var domain = 0;
 	var permitted = 0;
 	var paddr = -1;
@@ -187,6 +188,7 @@ function _translateAddress (vaddr, trtype)
 					cp15_FAR = vaddr;
 					return 0;
 				case 2: // small pages
+					ap = desc2 >> ((vaddr >> 9 & 6) + 4) & 3;
 					paddr = (desc2 & 0xFFFFF000) | (vaddr & 0x0FFF);
 					break;
 				default:
@@ -194,6 +196,7 @@ function _translateAddress (vaddr, trtype)
 			}
 			break;
 		case 2: // section
+			ap = (desc1 >> 10) & 0x03;
 			paddr = (desc1 & 0xFFF00000) | (vaddr & 0x000FFFFF);
 			break;
 		default:
@@ -211,19 +214,7 @@ function _translateAddress (vaddr, trtype)
 			cp15_FAR = vaddr;
 			return 0;
 		case 1: // client
-			// TODO: subpage AP bits
-			switch (desc2 >> 4 & 0xFF)
-			{
-				case 0x00:
-				case 0x55:
-				case 0xaa:
-				case 0xff:
-					break;
-				default:
-					bail (328514);
-					break;
-			}
-			switch (desc2 >> 4 & 0x03)
+			switch (ap)
 			{
 				case 0:
 					switch (cp15_SCTLR >> 8 & 0x03) // R/S bits
