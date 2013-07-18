@@ -1,12 +1,60 @@
 /dts-v1/;
-/include/ "../ksource/arch/arm/boot/dts/at91rm9200.dtsi"
+/include/ "../ksource/arch/arm/boot/dts/skeleton.dtsi"
 
 / {
+	
+	model = "Atmel AT91RM9200 compatible emulator";
+	compatible = "atmel,at91rm9200";
+	interrupt-parent = <&aic>;
+
 	chosen {
 		bootargs = "earlyprintk debug console=ttyS0";
 	};
 
+	cpus {
+		cpu@0 {
+			compatible = "arm,arm920t";
+		};
+	};
+
 	memory {
 		reg = <0x20000000 0x03F00000>;
+	};
+
+	ahb {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		apb {
+			compatible = "simple-bus";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges;
+
+			aic: interrupt-controller@fffff000 {
+				#interrupt-cells = <3>;
+				compatible = "atmel,at91rm9200-aic";
+				interrupt-controller;
+				reg = <0xfffff000 0x200>;
+			};
+
+			ramc0: ramc@ffffff00 {
+				compatible = "atmel,at91rm9200-sdramc";
+				reg = <0xffffff00 0x100>;
+			};
+
+			pmc: pmc@fffffc00 {
+				compatible = "atmel,at91rm9200-pmc";
+				reg = <0xfffffc00 0x100>;
+			};
+
+			st: timer@fffffd00 {
+				compatible = "atmel,at91rm9200-st";
+				reg = <0xfffffd00 0x100>;
+				interrupts = <1 4 7>;
+			};
+		};
 	};
 };
