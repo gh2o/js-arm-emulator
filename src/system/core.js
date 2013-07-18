@@ -216,7 +216,7 @@ function Core (stdlib, foreign, heap)
 		for (;numInstructions; numInstructions = INT (numInstructions - 1))
 		{
 			// increment tick counter, check for IRQs every few ticks
-			if ((tickCount & 0x00) == 0)
+			if ((tickCount & 0xFF) == 0)
 				irqPoll ();
 			tickCount = INT (tickCount + 1);
 
