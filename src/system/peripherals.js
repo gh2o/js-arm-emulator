@@ -142,8 +142,8 @@ function _pAICBegin ()
 		}
 	}
 
-	if (irq == -1)
-		return pAIC_SPU; // nothing has hapened...
+	if (S32 (irq) == -1)
+		return INT (pAIC_SPU); // nothing has hapened...
 
 	if ((1 << irq) <= S32 (pAIC_priomask))
 		bail (5902831); // still servicing equal or higher
@@ -187,14 +187,17 @@ function _pAICRead (offset)
 		return INT (wordView[(ADDR_AIC_SVR_ARRAY + (offset & 0x7F)) >> 2]);
 	}
 
-	switch (offset)
+	switch (S32 (offset))
 	{
 		case 0x100: // AIC_IVR
 			memoryError = STAT_OK;
 			return INT (_pAICBegin ());
 		case 0x108: // AIC_ISR
 			memoryError = STAT_OK;
-			return pAIC_priomask ? INT (_pAICStackGetIRQ ()) : 0;
+			if (pAIC_priomask)
+				return INT (_pAICStackGetIRQ ());
+			else
+				return 0;
 	}
 
 	log (LOG_ID, 3451124, LOG_HEX, S32 (offset));
