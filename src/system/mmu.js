@@ -214,7 +214,7 @@ function _translateAddress (vaddr, trtype)
 			cp15_FAR = vaddr;
 			return 0;
 		case 1: // client
-			switch (ap)
+			switch (S32 (ap))
 			{
 				case 0:
 					switch (cp15_SCTLR >> 8 & 0x03) // R/S bits
