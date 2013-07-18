@@ -34,7 +34,7 @@ var getMilliseconds = (function () {
 	else if (typeof performance !== "undefined" && (performance.now || performance.webkitNow))
 	{
 		// performance API
-		var nowfunc = performance.now || performance.webkitNow;
+		var nowfunc = (performance.now || performance.webkitNow).bind (performance);
 		begin = nowfunc ();
 		func = function () { return nowfunc () - begin; };
 	}

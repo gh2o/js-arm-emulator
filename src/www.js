@@ -56,6 +56,10 @@ function bootstrap ()
 	system = new System ();
 	system.loadImage (neededFiles.kernel.xhr.response, 0x20008000);
 	system.loadImage (neededFiles.devicetree.xhr.response, 0x21000000);
+	system.onConsoleByte = function (b) {
+		var op = document.getElementById ("output");
+		op.appendChild (document.createTextNode (String.fromCharCode (b)));
+	};
 
 	// do system reset
 	system.reset ();
@@ -71,10 +75,12 @@ function bootstrap ()
 			clearInterval (tickIntervalID);
 			throw e;
 		}
-	}, 5);
+	}, 2);
 }
 
 function tick ()
 {
-	system.run (10000);
+	var end = getMilliseconds () + 2;
+	while (getMilliseconds () < end)
+		system.run (1000);
 }
