@@ -154,6 +154,8 @@ function _pAICWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x138: // AIC_DCR
+			if (value)
+				bail (154481);
 			memoryError = STAT_OK;
 			return;
 	}
