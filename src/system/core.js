@@ -106,6 +106,7 @@ function Core (stdlib, foreign, heap)
 
 	function _setSPSR (value)
 	{
+		PARAM_INT (value);
 		wordView[ADDR_SPSR >> 2] = value;
 	}
 
@@ -185,7 +186,7 @@ function Core (stdlib, foreign, heap)
 		cpsr = getCPSR ();
 		spsr = cpsr;
 
-		switch (mode)
+		switch (S32 (mode))
 		{
 			case MODE_irq:
 				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
@@ -193,6 +194,7 @@ function Core (stdlib, foreign, heap)
 				break;
 			default:
 				bail (2904175);
+				break;
 		}
 
 		tgt = tgt | ((cp15_SCTLR & CP15_SCTLR_V) ? 0xFFFF0000 : 0);

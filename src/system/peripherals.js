@@ -10,13 +10,17 @@ var pAIC_SPU = 0;
 var pAIC_IMR = 0;
 var pAIC_IPR = 0;
 var pAIC_priomask = 0;
+
 var pST_IMR = 0;
 var pST_PIMR = 0;
-var pST_PIT = 0;
-var pST_PIT_expiration = 0.0;
+var pST_PIMR_period = 2000.0; // 65536 / 32.768
+var pST_PIMR_timestamp = 0.0
 var pST_RTMR = 0;
+var pST_RTMR_ticktime = 0.0;
 var pST_CRTR = 0;
 var pST_CRTR_timestamp = 0.0;
+var pST_SR_PITS_expiration = 0.0;
+var pST_SR_RTTINC_expiration = 0.0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -229,20 +233,14 @@ function _pPMCWrite (offset, value)
 
 function _pSTUpdateCRTR ()
 {
-	// RTC ticks/ms = SLCK ticks/ms / divider
-	var effectiveDivider = 0;
-	var ticksPerMillisecond = 0.0;
 	var elapsedTicks = 0;
-	
-	effectiveDivider = pST_RTMR ? pST_RTMR : 65536;
-	ticksPerMillisecond = 32.768 / DBL (S32 (effectiveDivider));
-	elapsedTicks = ~~((DBL (getMilliseconds ()) - pST_CRTR_timestamp) * ticksPerMillisecond);
+	elapsedTicks = ~~((DBL (getMilliseconds ()) - pST_CRTR_timestamp) / pST_RTMR_ticktime);
 
 	// add back if tick elapsed
 	if (S32 (elapsedTicks) > 0)
 	{
 		pST_CRTR = (pST_CRTR + elapsedTicks) & 0x0FFFFF;
-		pST_CRTR_timestamp = pST_CRTR_timestamp + DBL (S32 (elapsedTicks)) / ticksPerMillisecond;
+		pST_CRTR_timestamp = pST_CRTR_timestamp + DBL (S32 (elapsedTicks)) * pST_RTMR_ticktime;
 	}
 }
 
@@ -250,17 +248,39 @@ function _pSTRead (offset)
 {
 	PARAM_INT (offset);
 
+	var ret = 0;
+	var now = 0.0;
+	var elapsed = 0.0;
+
 	offset = offset & 0xFF;
 
 	switch (S32 (offset))
 	{
 		case 0x10: // ST_SR
+
+			now = DBL (getMilliseconds ());
+
+			if (now >= pST_SR_PITS_expiration)
+			{
+				ret = ret | (1 << 0);
+				elapsed = now - pST_PIMR_timestamp;
+				pST_SR_PITS_expiration = pST_PIMR_timestamp + (DBL (ceil (elapsed / pST_PIMR_period)) * pST_PIMR_period);
+			}
+
+			if (now >= pST_SR_RTTINC_expiration)
+			{
+				ret = ret | (1 << 2);
+				_pSTUpdateCRTR ();
+				pST_SR_RTTINC_expiration = pST_CRTR_timestamp + pST_RTMR_ticktime;
+			}
+
 			memoryError = STAT_OK;
-			log (LOG_ID, 351432);
-			return 0x0; // FIXME!!!!
+			return INT (ret);
+
 		case 0x24: // ST_CRTR
-			memoryError = STAT_OK;
+
 			_pSTUpdateCRTR ();
+			memoryError = STAT_OK;
 			return INT (pST_CRTR);
 	}
 
@@ -279,13 +299,14 @@ function _pSTWrite (offset, value)
 	{
 		case 0x04: // ST_PIMR
 			pST_PIMR = value & 0xFFFF;
-			pST_PIT = pST_PIMR ? pST_PIMR : 65536;
-			pST_PIT_expiration = DBL (getMilliseconds ()) + DBL (S32 (pST_PIT)) / 32.768;
+			pST_PIMR_period = (pST_PIMR ? DBL (S32 (pST_PIMR)) : 65536.0) / 32.768;
+			pST_PIMR_timestamp = DBL (getMilliseconds ());
 			memoryError = STAT_OK;
 			return;
 		case 0x0C: // ST_RTMR
 			_pSTUpdateCRTR (); // lock in old divider first
 			pST_RTMR = value & 0xFFFF;
+			pST_RTMR_ticktime = (pST_RTMR ? DBL (S32 (pST_RTMR)) : 65536.0) / 32.768;
 			memoryError = STAT_OK;
 			return;
 		case 0x14: // ST_IER
