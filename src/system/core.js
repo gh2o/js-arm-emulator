@@ -23,14 +23,14 @@ function Core (stdlib, foreign, heap)
 	var memoryError = 0;
 	var tickCount = 0;
 
-	var floor = stdlib.Math.floor;
-	var ceil = stdlib.Math.ceil;
+	var _floor = stdlib.Math.floor;
+	var _ceil = stdlib.Math.ceil;
+	var _imul = stdlib.Math.imul;
+	var _getMilliseconds = foreign.getMilliseconds;
 
-	var imul = stdlib.Math.imul;
 	var log = foreign.log;
 	var bail = foreign.bail;
 	var print = foreign.print;
-	var getMilliseconds = foreign.getMilliseconds;
 
 #define CP15_INCLUDE_VARIABLES
 #include "cp15.js"

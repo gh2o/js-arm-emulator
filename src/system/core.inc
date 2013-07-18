@@ -1,6 +1,13 @@
 // vim: ft=c
 #pragma once
 
+/* imported functions */
+#define floor(x) FUNC_DBL(floor,x)
+#define ceil(x) FUNC_DBL(ceil,x)
+#define imul(x,y) FUNC_INT(imul,x,y)
+#define getMilliseconds() FUNC_DBL(getMilliseconds)
+
+/* defined functions */
 #define reset() FUNC_VOID(reset)
 #define getPC() FUNC_INT(getPC)
 #define setPC(v) FUNC_VOID(setPC,v)

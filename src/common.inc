@@ -9,5 +9,5 @@
 #ifdef ASM_JS
 	#define FUNC_VOID(x,...) _##x(__VA_ARGS__)
 	#define FUNC_INT(x,...) (_##x(__VA_ARGS__)|0)
-	#define FUNC_DOUBLE(x,...) (+_##x(__VA_ARGS__))
+	#define FUNC_DBL(x,...) (+_##x(__VA_ARGS__))
 #endif
