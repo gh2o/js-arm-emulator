@@ -282,7 +282,7 @@ function _inst_MUL_MLA (A, Rd, Rm, Rs, Rn, S)
 	PARAM_INT (S);
 
 	var result = 0;
-	result = INT (imul (getRegister (Rm), getRegister (Rs)));
+	result = imul (getRegister (Rm), getRegister (Rs));
 	if (A)
 		result = INT (result + getRegister (Rn));
 
@@ -344,18 +344,18 @@ function _inst_SMULL_SMLAL_UMULL_UMLAL (signed, A, RdHi, RdLo, Rm, Rs, S)
 	}
 
 	// calculate bases
-	rlo = INT (imul (alo, blo));
-	rhi = INT (imul (ahi, bhi));
+	rlo = imul (alo, blo);
+	rhi = imul (ahi, bhi);
 
 	// add (ahi * blo) * 2^16
-	rtm = INT (imul (ahi, blo));
+	rtm = imul (ahi, blo);
 	rhi = INT (rhi + (rtm >>> 16));
 	rtm = rtm << 16;
 	rlo = INT (rlo + rtm);
 	rhi = INT (rhi + (U32 (rlo) < U32 (rtm)));
 
 	// add (alo * bhi) * 2^16
-	rtm = INT (imul (alo, bhi));
+	rtm = imul (alo, bhi);
 	rhi = INT (rhi + (rtm >>> 16));
 	rtm = rtm << 16;
 	rlo = INT (rlo + rtm);

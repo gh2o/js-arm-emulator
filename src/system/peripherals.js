@@ -234,7 +234,7 @@ function _pPMCWrite (offset, value)
 function _pSTUpdateCRTR ()
 {
 	var elapsedTicks = 0;
-	elapsedTicks = ~~((DBL (getMilliseconds ()) - pST_CRTR_timestamp) / pST_RTMR_ticktime);
+	elapsedTicks = ~~((getMilliseconds () - pST_CRTR_timestamp) / pST_RTMR_ticktime);
 
 	// add back if tick elapsed
 	if (S32 (elapsedTicks) > 0)
@@ -258,13 +258,13 @@ function _pSTRead (offset)
 	{
 		case 0x10: // ST_SR
 
-			now = DBL (getMilliseconds ());
+			now = getMilliseconds ();
 
 			if (now >= pST_SR_PITS_expiration)
 			{
 				ret = ret | (1 << 0);
 				elapsed = now - pST_PIMR_timestamp;
-				pST_SR_PITS_expiration = pST_PIMR_timestamp + (DBL (ceil (elapsed / pST_PIMR_period)) * pST_PIMR_period);
+				pST_SR_PITS_expiration = pST_PIMR_timestamp + (ceil (elapsed / pST_PIMR_period) * pST_PIMR_period);
 			}
 
 			if (now >= pST_SR_RTTINC_expiration)
@@ -300,7 +300,7 @@ function _pSTWrite (offset, value)
 		case 0x04: // ST_PIMR
 			pST_PIMR = value & 0xFFFF;
 			pST_PIMR_period = (pST_PIMR ? DBL (S32 (pST_PIMR)) : 65536.0) / 32.768;
-			pST_PIMR_timestamp = DBL (getMilliseconds ());
+			pST_PIMR_timestamp = getMilliseconds ();
 			memoryError = STAT_OK;
 			return;
 		case 0x0C: // ST_RTMR

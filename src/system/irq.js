@@ -36,7 +36,7 @@ function _irqPoll ()
 		return;
 
 	// PITS interrupt
-	IRQ (1, pST_IMR & (1 << 0), DBL (getMilliseconds ()) >= pST_SR_PITS_expiration);
+	IRQ (1, pST_IMR & (1 << 0), getMilliseconds () >= pST_SR_PITS_expiration);
 
 	// bail on unsupported interrupts
 	if (pAIC_IMR & ~0x00000002)
