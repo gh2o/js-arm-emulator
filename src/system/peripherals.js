@@ -9,6 +9,7 @@
 var pAIC_SPU = 0;
 var pAIC_IMR = 0;
 var pAIC_IPR = 0;
+var pAIC_stacksize = 0;
 var pAIC_priomask = 0;
 
 var pST_IMR = 0;
@@ -79,16 +80,93 @@ function _undefinedPeripheralWrite (offset, value)
 	bail (2130668);
 }
 
+function _pAICStackPush (irq, prio)
+{
+	PARAM_INT (irq);
+	PARAM_INT (prio);
+
+	wordView[(ADDR_AIC_IRQ_STACK + (pAIC_stacksize << 2)) >> 2] = irq;
+	wordView[(ADDR_AIC_PRIO_STACK + (pAIC_stacksize << 2)) >> 2] = prio;
+	pAIC_stacksize = INT (pAIC_stacksize + 1);
+}
+
+function _pAICStackPop ()
+{
+	pAIC_stacksize = INT (pAIC_stacksize - 1);
+}
+
+function _pAICStackGetIRQ ()
+{
+	var index = 0;
+	index = INT (pAIC_stacksize - 1);
+	return INT (wordView[(ADDR_AIC_IRQ_STACK + (index << 2)) >> 2]);
+}
+
+function _pAICStackGetPriority ()
+{
+	var index = 0;
+	index = INT (pAIC_stacksize - 1);
+	return INT (wordView[(ADDR_AIC_PRIO_STACK + (index << 2)) >> 2]);
+}
+
 function _pAICGetPriority (n)
 {
 	PARAM_INT (n);
-	return INT (wordView[(ADDR_AIC + (n << 2)) >> 2] & 0x07);
+	return INT (wordView[(ADDR_AIC_SMR_ARRAY + (n << 2)) >> 2] & 0x07);
 }
 
 function _pAICGetType (n)
 {
 	PARAM_INT (n);
-	return INT (wordView[(ADDR_AIC + (n << 2)) >> 2] >> 5 & 0x03);
+	return INT (wordView[(ADDR_AIC_SMR_ARRAY + (n << 2)) >> 2] >> 5 & 0x03);
+}
+
+function _pAICBegin ()
+{
+	var i = 0;
+
+	var prio = -1;
+	var irq = -1;
+
+	var tprio = 0;
+	for (i = 0; S32 (i) < 32; i = INT (i + 1))
+	{
+		if (pAIC_IPR & pAIC_IMR & (1 << i))
+		{
+			tprio = INT (_pAICGetPriority (i));
+			if (S32 (tprio) > S32 (prio))
+			{
+				irq = i;
+				prio = tprio;
+			}
+		}
+	}
+
+	if (irq == -1)
+		return pAIC_SPU; // nothing has hapened...
+
+	if ((1 << irq) <= S32 (pAIC_priomask))
+		bail (5902831); // still servicing equal or higher
+
+	// clear interrupt and add to stack and set mask
+	pAIC_IPR = pAIC_IPR & ~(1 << irq);
+	_pAICStackPush (irq, prio);
+	pAIC_priomask = pAIC_priomask | (1 << prio);
+
+	return INT (wordView[(ADDR_AIC_SVR_ARRAY + (irq << 2)) >> 2]);
+}
+
+function _pAICEnd ()
+{
+	var prio = 0;
+
+	if (!pAIC_priomask) // no current interrupt
+		return;
+
+	// pop stack and unset mask
+	prio = INT (_pAICStackGetPriority ());
+	pAIC_priomask = pAIC_priomask & ~(1 << prio);
+	_pAICStackPop ();
 }
 
 function _pAICRead (offset)
@@ -99,14 +177,24 @@ function _pAICRead (offset)
 	{
 		// AIC_SMRn registers
 		memoryError = STAT_OK;
-		return INT (wordView[(ADDR_AIC + offset) >> 2]);
+		return INT (wordView[(ADDR_AIC_SMR_ARRAY + (offset & 0x7F)) >> 2]);
 	}
 
 	if ((offset & 0xFFFFFF83) == 0x80)
 	{
 		// AIC_SVRn registers
 		memoryError = STAT_OK;
-		return INT (wordView[(ADDR_AIC + offset) >> 2]);
+		return INT (wordView[(ADDR_AIC_SVR_ARRAY + (offset & 0x7F)) >> 2]);
+	}
+
+	switch (offset)
+	{
+		case 0x100: // AIC_IVR
+			memoryError = STAT_OK;
+			return INT (_pAICBegin ());
+		case 0x108: // AIC_ISR
+			memoryError = STAT_OK;
+			return pAIC_priomask ? INT (_pAICStackGetIRQ ()) : 0;
 	}
 
 	log (LOG_ID, 3451124, LOG_HEX, S32 (offset));
@@ -123,7 +211,7 @@ function _pAICWrite (offset, value)
 	if ((offset & 0xFFFFFF83) == 0x00)
 	{
 		// AIC_SMRn registers
-		wordView[(ADDR_AIC + offset) >> 2] = value & 0x67;
+		wordView[(ADDR_AIC_SMR_ARRAY + (offset & 0x7F)) >> 2] = value & 0x67;
 		memoryError = STAT_OK;
 		return;
 	}
@@ -131,7 +219,7 @@ function _pAICWrite (offset, value)
 	if ((offset & 0xFFFFFF83) == 0x80)
 	{
 		// AIC_SVRn registers
-		wordView[(ADDR_AIC + offset) >> 2] = value;
+		wordView[(ADDR_AIC_SVR_ARRAY + (offset & 0x7F)) >> 2] = value;
 		memoryError = STAT_OK;
 		return;
 	}
@@ -151,6 +239,7 @@ function _pAICWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x130: // AIC_EOICR
+			_pAICEnd ();
 			memoryError = STAT_OK;
 			return;
 		case 0x134: // AIC_SPU

@@ -63,7 +63,7 @@
    
    Peripherals:
 
-     AIC: 0x0100 - 0x0200
+     AIC: 0x0100 - 0x0240
 
  ****************************************/
 
@@ -77,4 +77,7 @@
 #define STRIDE_GROUP1 (1 << SSHIFT_GROUP1)
 #define STRIDE_GROUP2 (1 << SSHIFT_GROUP2)
 
-#define ADDR_AIC (0x0100)
+#define ADDR_AIC_SMR_ARRAY (0x0100)
+#define ADDR_AIC_SVR_ARRAY (0x0180)
+#define ADDR_AIC_IRQ_STACK (0x0200)
+#define ADDR_AIC_PRIO_STACK (0x0220)
