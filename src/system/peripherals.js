@@ -20,8 +20,10 @@ var pST_RTMR = 0;
 var pST_RTMR_ticktime = 0.0;
 var pST_CRTR = 0;
 var pST_CRTR_timestamp = 0.0;
+var pST_RTAR = 0;
 var pST_SR_PITS_expiration = 0.0;
 var pST_SR_RTTINC_expiration = 0.0;
+var pST_SR_ALMS_expiration = 0.0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -333,6 +335,22 @@ function _pSTUpdateCRTR ()
 	}
 }
 
+function _pSTUpdateALMS (force)
+{
+	PARAM_INT (force);
+
+	var remainingTicks = 0;
+	var newExpiration = 0.0;
+
+	remainingTicks = (pST_RTAR - pST_CRTR) & 0x0FFFFF;
+	if (remainingTicks == 0)
+		remainingTicks = 0x100000;
+
+	newExpiration = pST_CRTR_timestamp + remainingTicks * pST_RTMR_ticktime;
+	if (force | (newExpiration < pST_SR_ALMS_expiration))
+		pST_SR_ALMS_expiration = newExpiration;
+}
+
 function _pSTRead (offset)
 {
 	PARAM_INT (offset);
@@ -361,6 +379,12 @@ function _pSTRead (offset)
 				ret = ret | (1 << 2);
 				_pSTUpdateCRTR ();
 				pST_SR_RTTINC_expiration = pST_CRTR_timestamp + pST_RTMR_ticktime;
+			}
+
+			if (now >= pST_SR_ALMS_expiration)
+			{
+				ret = ret | (1 << 3);
+				_pSTUpdateALMS (1);
 			}
 
 			memoryError = STAT_OK;
@@ -396,6 +420,7 @@ function _pSTWrite (offset, value)
 			_pSTUpdateCRTR (); // lock in old divider first
 			pST_RTMR = value & 0xFFFF;
 			pST_RTMR_ticktime = (pST_RTMR ? DBL (S32 (pST_RTMR)) : 65536.0) / 32.768;
+			_pSTUpdateALMS (0); // ALMS depends on this value
 			memoryError = STAT_OK;
 			return;
 		case 0x14: // ST_IER
@@ -404,6 +429,11 @@ function _pSTWrite (offset, value)
 			return;
 		case 0x18: // ST_IDR
 			pST_IMR = pST_IMR & ~value;
+			memoryError = STAT_OK;
+			return;
+		case 0x20: // ST_RTAR
+			pST_RTAR = value & 0x0FFFFF;
+			_pSTUpdateALMS (0);
 			memoryError = STAT_OK;
 			return;
 	}

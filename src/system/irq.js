@@ -32,15 +32,19 @@ function _irqTest (n, cond)
 
 function _irqPoll ()
 {
+	var now = 0.0;
+
 	if (getCPSR () & PSR_I) // IRQs masked, FIQs not supported
 		return;
 
-	// PITS interrupt
-	IRQ (1, pST_IMR & (1 << 0), getMilliseconds () >= pST_SR_PITS_expiration);
+	// ST interrupts
+	now = getMilliseconds ();
+	IRQ (1, pST_IMR & (1 << 0), now >= pST_SR_PITS_expiration);
+	IRQ (1, pST_IMR & (1 << 3), now >= pST_SR_ALMS_expiration);
 
 	// bail on unsupported interrupts
 	if (pAIC_IMR & ~0x00000002)
 		bail (1074011);
-	if (pST_IMR & ~0x00000001)
+	if (pST_IMR  & ~0x00000009)
 		bail (5312453);
 }
