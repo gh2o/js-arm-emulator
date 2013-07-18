@@ -29,8 +29,6 @@ function _readWordPeripheral (addr)
 {
 	PARAM_INT (addr);
 
-	log (LOG_ID, 2280799, LOG_HEX, S32 (addr));
-
 	if ((addr >> 12) == ~0) // system peripherals
 		return INT (systemPeripheralRead[addr >> 8 & 0x0F](addr & 0x1FF));
 	else if (addr >> 19 == ~0) // user peripherals
@@ -44,8 +42,6 @@ function _writeWordPeripheral (addr, value)
 {
 	PARAM_INT (addr);
 	PARAM_INT (value);
-
-	log (LOG_ID, 2893192, LOG_HEX, S32 (addr));
 
 	if ((addr >> 12) == ~0) // system peripherals
 	{
