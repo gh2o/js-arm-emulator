@@ -308,6 +308,7 @@ function _pPMCWrite (offset, value)
 	switch (S32 (offset))
 	{
 		case 0x00: // PMC_SCER
+		case 0x10: // PMC_PCER
 			memoryError = STAT_OK;
 			return;
 		case 0x28: // CKGR_PLLAR
