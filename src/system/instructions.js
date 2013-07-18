@@ -636,13 +636,14 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
 
-function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
+function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 {
 	PARAM_INT (L);
 	PARAM_INT (Rn);
 	PARAM_INT (register_list);
 	PARAM_INT (addressing_mode);
 	PARAM_INT (W);
+	PARAM_INT (S);
 
 	var origBase = 0;
 	var origPC = 0;
@@ -739,6 +740,13 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W)
 				break;
 		}
 		setRegister (Rn, ptr);
+	}
+
+	if (S)
+	{
+		// LDM(3): restore CPSR from SPSR
+		// TODO: potential security problem
+		setCPSR (getSPSR ());
 	}
 
 	return STAT_OK;
