@@ -23,6 +23,9 @@ function Core (stdlib, foreign, heap)
 	var memoryError = 0;
 	var tickCount = 0;
 
+	var floor = stdlib.Math.floor;
+	var ceil = stdlib.Math.ceil;
+
 	var imul = stdlib.Math.imul;
 	var log = foreign.log;
 	var bail = foreign.bail;
@@ -211,7 +214,7 @@ function Core (stdlib, foreign, heap)
 		for (;numInstructions; numInstructions = INT (numInstructions - 1))
 		{
 			// increment tick counter, check for IRQs every few ticks
-			if ((tickCount & 0x1F) == 0)
+			if ((tickCount & 0x00) == 0)
 				irqPoll ();
 			tickCount = INT (tickCount + 1);
 
