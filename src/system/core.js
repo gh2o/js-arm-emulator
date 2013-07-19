@@ -190,7 +190,11 @@ function Core (stdlib, foreign, heap)
 		{
 			case MODE_irq:
 				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
-				tgt =  0x18;
+				tgt = 0x18;
+				break;
+			case MODE_abt:
+				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
+				tgt = 0x10;
 				break;
 			default:
 				bail (2904175);
@@ -231,8 +235,17 @@ function Core (stdlib, foreign, heap)
 
 			// execute the instruction
 			stat = execute (inst);
-			if (S32 (stat) != STAT_OK)
-				bail (13515); // some stupid error occurred
+			switch (S32 (stat))
+			{
+				case STAT_OK:
+					break;
+				case STAT_ABT: // data abort
+					triggerException (MODE_abt);
+					break;
+				default:
+					bail (13515); // some stupid error occurred
+					break;
+			}
 		}
 	}
 

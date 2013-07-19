@@ -538,7 +538,7 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 		else
 			value = readWord (address, flags);
 		if (memoryError)
-			bail (12984); // data abort
+			return STAT_ABT;
 		setRegister (Rd, S32 (Rd) == REG_PC ? value & ~3 : value); // mask if PC
 	}
 	else
@@ -550,7 +550,7 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 		else
 			writeWord (address, value, flags);
 		if (memoryError)
-			bail (12985); // data abort
+			return STAT_ABT;
 	}
 
 	// writeback base register only if wbaddress is valid

@@ -54,6 +54,26 @@ function _cp15_read (CRn, opcode_1, CRm, opcode_2, Rd)
 				}
 			}
 			break;
+		case 5:
+			if (S32 (opcode_1) == 0)
+			{
+				if ((CRm | opcode_2) == 0)
+				{
+					setRegister (Rd, cp15_FSR);
+					return STAT_OK;
+				}
+			}
+			break;
+		case 6:
+			if (S32 (opcode_1) == 0)
+			{
+				if ((CRm | opcode_2) == 0)
+				{
+					setRegister (Rd, cp15_FAR);
+					return STAT_OK;
+				}
+			}
+			break;
 	}
 
 	log (
