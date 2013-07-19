@@ -382,7 +382,7 @@ function _inst_SMULL_SMLAL_UMULL_UMLAL (signed, A, RdHi, RdLo, Rm, Rs, S)
 		// unflip sign bit
 		rhi = rhi ^ (1 << 31);
 
-		console.log ("<<SMULL>>: " + getRegister (Rm) + " * " + getRegister (Rs) + " = " + rhi + ", " + rlo);
+		console.log ("<<SMULL>>: " + getRegister (Rm) + " * " + getRegister (Rs) + " = " + S32 (rhi) + ", " + U32 (rlo));
 	}
 
 	// accumulate if necessary
