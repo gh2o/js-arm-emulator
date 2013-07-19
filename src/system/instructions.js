@@ -144,7 +144,12 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 				carry = operand & (1 << 31);
 			}
 			break;
+		case SHIFT_TYPE_ROTATE_WITH_EXTEND:
+			carry = operand & 1;
+			operand = (cpsr & PSR_C << 2) | (operand >>> 1);
+			break;
 		default:
+			// just in case
 			bail (7536244);
 			break;
 	}
