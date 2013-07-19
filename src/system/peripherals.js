@@ -310,7 +310,9 @@ function _pPMCWrite (offset, value)
 	switch (S32 (offset))
 	{
 		case 0x00: // PMC_SCER
+		case 0x04: // PMC_SCDR
 		case 0x10: // PMC_PCER
+		case 0x14: // PMC_PCDR
 			memoryError = STAT_OK;
 			return;
 		case 0x28: // CKGR_PLLAR
@@ -319,6 +321,7 @@ function _pPMCWrite (offset, value)
 			return;
 	}
 
+	log (LOG_ID, 9823127, LOG_HEX, offset);
 	bail (9823127);
 }
 
