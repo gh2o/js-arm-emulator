@@ -321,7 +321,7 @@ function _pPMCWrite (offset, value)
 			return;
 	}
 
-	log (LOG_ID, 9823127, LOG_HEX, offset);
+	log (LOG_ID, 9823127, LOG_HEX, S32 (offset));
 	bail (9823127);
 }
 
