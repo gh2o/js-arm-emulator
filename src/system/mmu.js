@@ -78,13 +78,14 @@ function _writeBytePhysical (addr, value)
 	byteView[needSwap ? offset ^ 3 : offset] = value & 0xFF;
 }
 
-function _readWord (addr)
+function _readWord (addr, flags)
 {
 	PARAM_INT (addr);
+	PARAM_INT (flags);
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, MMU_TRANSLATE_READ);
+		addr = translateAddress (addr, flags | MMU_TRANSLATE_READ);
 		if (memoryError)
 			return 0;
 	}
@@ -92,14 +93,15 @@ function _readWord (addr)
 	return readWordPhysical (addr);
 }
 
-function _writeWord (addr, value)
+function _writeWord (addr, value, flags)
 {
 	PARAM_INT (addr);
 	PARAM_INT (value);
+	PARAM_INT (flags);
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, MMU_TRANSLATE_WRITE);
+		addr = translateAddress (addr, flags | MMU_TRANSLATE_WRITE);
 		if (memoryError)
 			return;
 	}
@@ -107,13 +109,14 @@ function _writeWord (addr, value)
 	writeWordPhysical (addr, value);
 }
 
-function _readByte (addr)
+function _readByte (addr, flags)
 {
 	PARAM_INT (addr);
+	PARAM_INT (flags);
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, MMU_TRANSLATE_READ);
+		addr = translateAddress (addr, flags | MMU_TRANSLATE_READ);
 		if (memoryError)
 			return 0;
 	}
@@ -121,14 +124,15 @@ function _readByte (addr)
 	return readBytePhysical (addr);
 }
 
-function _writeByte (addr, value)
+function _writeByte (addr, value, flags)
 {
 	PARAM_INT (addr);
 	PARAM_INT (value);
+	PARAM_INT (flags);
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, MMU_TRANSLATE_WRITE);
+		addr = translateAddress (addr, flags | MMU_TRANSLATE_WRITE);
 		if (memoryError)
 			return;
 	}
@@ -138,10 +142,10 @@ function _writeByte (addr, value)
 
 #define dtype (desc1 & 3)
 
-function _translateAddress (vaddr, trtype)
+function _translateAddress (vaddr, trflags)
 {
 	PARAM_INT (vaddr);
-	PARAM_INT (trtype);
+	PARAM_INT (trflags);
 
 	var desc1 = 0;
 	var desc2 = 0;
@@ -149,6 +153,10 @@ function _translateAddress (vaddr, trtype)
 	var domain = 0;
 	var permitted = 0;
 	var paddr = -1;
+	var privileged = 0;
+
+	if (!(trflags & MMU_TRANSLATE_USER))
+		privileged = !!isPrivileged ();
 
 	// get first level descriptor
 	desc1 = readWordPhysical ((cp15_TTBR0 & 0xFFFFC000) | (vaddr >> 18 & 0x3FFC));
@@ -216,18 +224,18 @@ function _translateAddress (vaddr, trtype)
 					switch (cp15_SCTLR >> 8 & 0x03) // R/S bits
 					{
 						case 1:
-							permitted = !(trtype & MMU_TRANSLATE_WRITE) & !!isPrivileged ();
+							permitted = !(trflags & MMU_TRANSLATE_WRITE) & privileged;
 							break;
 						case 2:
-							permitted = !(trtype & MMU_TRANSLATE_WRITE);
+							permitted = !(trflags & MMU_TRANSLATE_WRITE);
 							break;
 					}
 					break;
 				case 1:
-					permitted = !!isPrivileged ()
+					permitted = privileged;
 					break;
 				case 2:
-					permitted = !(trtype & MMU_TRANSLATE_WRITE) | !!isPrivileged ();
+					permitted = !(trflags & MMU_TRANSLATE_WRITE) | privileged;
 					break;
 				case 3:
 					permitted = 1;

@@ -529,9 +529,9 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 	{
 		// LDR
 		if (B)
-			value = readByte (address) & 0xFF;
+			value = readByte (address, 0) & 0xFF;
 		else
-			value = readWord (address);
+			value = readWord (address, 0);
 		if (memoryError)
 			bail (12984); // data abort
 		setRegister (Rd, S32 (Rd) == REG_PC ? value & ~3 : value); // mask if PC
@@ -541,9 +541,9 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 		// STR
 		value = getRegister (Rd);
 		if (B)
-			writeByte (address, value & 0xFF);
+			writeByte (address, value & 0xFF, 0);
 		else
-			writeWord (address, value);
+			writeWord (address, value, 0);
 		if (memoryError)
 			bail (12985); // data abort
 	}
@@ -588,10 +588,10 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 			if (address & 1)
 				bail (392849); // unaligned access
 			value = getRegister (Rd);
-			writeByte (address, value & 0xFF);
+			writeByte (address, value & 0xFF, 0);
 			if (memoryError)
 				bail (2384092);
-			writeByte (INT (address + 1), value >> 8 & 0xFF);
+			writeByte (INT (address + 1), value >> 8 & 0xFF, 0);
 			if (memoryError)
 				bail (2384093);
 			break;
@@ -600,10 +600,10 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 		case 7: // LDRSH
 			if (address & 1)
 				bail (392850); // unaligned access
-			value = readByte (address);
+			value = readByte (address, 0);
 			if (memoryError)
 				bail (3465131);
-			value = value | (readByte (INT (address + 1)) << 8);
+			value = value | (readByte (INT (address + 1), 0) << 8);
 			if (memoryError)
 				bail (3465132);
 			if (LSH & 0x2)
@@ -613,7 +613,7 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 			break;
 
 		case 6: // LDRSB
-			value = readByte (address);
+			value = readByte (address, 0);
 			if (memoryError)
 				bail (9082095);
 			setRegister (Rd, (value << 24) >> 24);
@@ -671,7 +671,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 				{
 					if (L)
 					{
-						value = readWord (ptr);
+						value = readWord (ptr, 0);
 						if (memoryError)
 							break;
 						setRegister (i, S32 (i) == REG_PC ? value & ~3 : value); // mask if PC
@@ -679,7 +679,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 					else
 					{
 						value = getRegister (i);
-						writeWord (ptr, value);
+						writeWord (ptr, value, 0);
 						if (memoryError)
 							break;
 					}
@@ -697,7 +697,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 				{
 					if (L)
 					{
-						value = readWord (ptr);
+						value = readWord (ptr, 0);
 						if (memoryError)
 							break;
 						setRegister (i, S32 (i) == REG_PC ? value & ~3 : value); // mask if PC
@@ -705,7 +705,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 					else
 					{
 						value = getRegister (i);
-						writeWord (ptr, value);
+						writeWord (ptr, value, 0);
 						if (memoryError)
 							break;
 					}
@@ -772,18 +772,18 @@ function _inst_SWP_SWPB (B, Rd, Rm, Rn)
 	// read values
 	tomem = getRegister (Rm);
 	if (B)
-		toreg = readByte (base) & 0xFF;
+		toreg = readByte (base, 0) & 0xFF;
 	else
-		toreg = readWord (base);
+		toreg = readWord (base, 0);
 	if (memoryError)
 		bail (3283017);
 
 	// write values
 	setRegister (Rd, toreg);
 	if (B)
-		writeByte (base, tomem & 0xFF);
+		writeByte (base, tomem & 0xFF, 0);
 	else
-		writeWord (base, tomem);
+		writeWord (base, tomem, 0);
 	if (memoryError)
 		bail (4283019);
 
@@ -807,14 +807,14 @@ function _inst_SVC (imm)
 		{
 			case 3:
 				base = getRegister (REG_R1);
-				chr = readByte (base);
+				chr = readByte (base, 0);
 				print (S32 (chr));
 				return STAT_OK;
 			case 4:
 				base = getRegister (REG_R1);
 				while (1)
 				{
-					chr = readByte (base);
+					chr = readByte (base, 0);
 					if (chr)
 						print (S32 (chr));
 					else

@@ -11,9 +11,9 @@
 #define readBytePhysical(a) FUNC_INT(readBytePhysical,a)
 #define writeBytePhysical(a,b) FUNC_VOID(writeBytePhysical,a,b)
 
-#define readWord(a) FUNC_INT(readWord,a)
-#define writeWord(a,b) FUNC_VOID(writeWord,a,b)
-#define readByte(a) FUNC_INT(readByte,a)
-#define writeByte(a,b) FUNC_VOID(writeByte,a,b)
+#define readWord(a,f) FUNC_INT(readWord,a,f)
+#define writeWord(a,b,f) FUNC_VOID(writeWord,a,b,f)
+#define readByte(a,f) FUNC_INT(readByte,a,f)
+#define writeByte(a,b,f) FUNC_VOID(writeByte,a,b,f)
 
 #define translateAddress(a,t) FUNC_INT(translateAddress,a,t)

@@ -225,7 +225,7 @@ function Core (stdlib, foreign, heap)
 			setPC (INT (pc + 4));
 
 			// read instruction at PC
-			inst = readWord (pc);
+			inst = readWord (pc, MMU_TRANSLATE_EXECUTE);
 			if (memoryError)
 				bail (12980); // prefetch abort
 
