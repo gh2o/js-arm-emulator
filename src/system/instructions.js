@@ -492,6 +492,7 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 	var address = 0;
 	var wbaddress = 0;
 	var value = 0;
+	var flags = 0;
 
 	offset = DECODE_IMMEDIATE_REGISTER (offset_immreg);
 	switch (S32 (shift_type))
@@ -524,14 +525,18 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 		if (address & 3)
 			bail (9028649);
 
+	// check if user access
+	if (!P & !!W)
+		flags = flags | MMU_TRANSLATE_USER;
+
 	// do the access
 	if (L)
 	{
 		// LDR
 		if (B)
-			value = readByte (address, 0) & 0xFF;
+			value = readByte (address, flags) & 0xFF;
 		else
-			value = readWord (address, 0);
+			value = readWord (address, flags);
 		if (memoryError)
 			bail (12984); // data abort
 		setRegister (Rd, S32 (Rd) == REG_PC ? value & ~3 : value); // mask if PC
@@ -541,9 +546,9 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 		// STR
 		value = getRegister (Rd);
 		if (B)
-			writeByte (address, value & 0xFF, 0);
+			writeByte (address, value & 0xFF, flags);
 		else
-			writeWord (address, value, 0);
+			writeWord (address, value, flags);
 		if (memoryError)
 			bail (12985); // data abort
 	}
