@@ -1,9 +1,5 @@
 #include "mmu.inc"
 
-#define TRANSLATE_READ    (1 << 0)
-#define TRANSLATE_WRITE   (1 << 1)
-#define TRANSLATE_EXECUTE (1 << 2)
-
 function _readWordPhysical (addr)
 {
 	PARAM_INT (addr);
@@ -88,7 +84,7 @@ function _readWord (addr)
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, TRANSLATE_READ);
+		addr = translateAddress (addr, MMU_TRANSLATE_READ);
 		if (memoryError)
 			return 0;
 	}
@@ -103,7 +99,7 @@ function _writeWord (addr, value)
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, TRANSLATE_WRITE);
+		addr = translateAddress (addr, MMU_TRANSLATE_WRITE);
 		if (memoryError)
 			return;
 	}
@@ -117,7 +113,7 @@ function _readByte (addr)
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, TRANSLATE_READ);
+		addr = translateAddress (addr, MMU_TRANSLATE_READ);
 		if (memoryError)
 			return 0;
 	}
@@ -132,7 +128,7 @@ function _writeByte (addr, value)
 
 	if (cp15_SCTLR & CP15_SCTLR_M)
 	{
-		addr = translateAddress (addr, TRANSLATE_WRITE);
+		addr = translateAddress (addr, MMU_TRANSLATE_WRITE);
 		if (memoryError)
 			return;
 	}
@@ -220,10 +216,10 @@ function _translateAddress (vaddr, trtype)
 					switch (cp15_SCTLR >> 8 & 0x03) // R/S bits
 					{
 						case 1:
-							permitted = !(trtype & TRANSLATE_WRITE) & !!isPrivileged ();
+							permitted = !(trtype & MMU_TRANSLATE_WRITE) & !!isPrivileged ();
 							break;
 						case 2:
-							permitted = !(trtype & TRANSLATE_WRITE);
+							permitted = !(trtype & MMU_TRANSLATE_WRITE);
 							break;
 					}
 					break;
@@ -231,7 +227,7 @@ function _translateAddress (vaddr, trtype)
 					permitted = !!isPrivileged ()
 					break;
 				case 2:
-					permitted = !(trtype & TRANSLATE_WRITE) | !!isPrivileged ();
+					permitted = !(trtype & MMU_TRANSLATE_WRITE) | !!isPrivileged ();
 					break;
 				case 3:
 					permitted = 1;
