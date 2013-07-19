@@ -1,7 +1,5 @@
 .*.swp
 .*.swo
-*.dtb
 .depends
 /js
 /build/
-/output/
