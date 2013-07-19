@@ -516,7 +516,7 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 		wbaddress = INT (address + offset);
 	else
 		wbaddress = INT (address - offset);
-	if (P | W) // not post-indexed
+	if (P) // not post-indexed
 		address = wbaddress;
 
 	// TODO: unaligned access
@@ -549,7 +549,7 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 	}
 
 	// writeback base register only if wbaddress is valid
-	if (S32 (!!P) == S32 (!!W))
+	if (!P | W)
 		setRegister (Rn, wbaddress);
 
 	return STAT_OK;
