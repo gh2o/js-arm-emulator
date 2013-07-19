@@ -343,10 +343,10 @@ function _pSTUpdateALMS (force)
 	var newExpiration = 0.0;
 
 	remainingTicks = (pST_RTAR - pST_CRTR) & 0x0FFFFF;
-	if (remainingTicks == 0)
+	if (S32 (remainingTicks) == 0)
 		remainingTicks = 0x100000;
 
-	newExpiration = pST_CRTR_timestamp + remainingTicks * pST_RTMR_ticktime;
+	newExpiration = pST_CRTR_timestamp + DBL (S32 (remainingTicks)) * pST_RTMR_ticktime;
 	if (force | (newExpiration < pST_SR_ALMS_expiration))
 		pST_SR_ALMS_expiration = newExpiration;
 }
