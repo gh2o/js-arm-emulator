@@ -511,6 +511,12 @@ function _inst_LDR_STR_LDRB_STRB (L, B, Rd, Rn, offset_immreg,
 			else
 				offset = 0;
 			break;
+		case SHIFT_TYPE_ARITHMETIC_RIGHT:
+			if (S32 (shift_amount) < 32)
+				offset = offset >> shift_amount;
+			else
+				offset = offset >> 31;
+			break;
 		default:
 			bail (2851087);
 			break;
