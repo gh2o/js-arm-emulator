@@ -55,6 +55,14 @@
 				reg = <0xfffffd00 0x100>;
 				interrupts = <1 4 7>;
 			};
+
+			mmc0: mmc@fffb4000 {
+				compatible = "atmel,hsmci";
+				reg = <0xfffb4000 0x4000>;
+				interrupts = <10 4 0>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+			};
 		};
 	};
 };
