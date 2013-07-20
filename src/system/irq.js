@@ -41,9 +41,10 @@ function _irqPoll ()
 	now = getMilliseconds ();
 	IRQ (1, pST_IMR & (1 << 0), now >= pST_SR_PITS_expiration);
 	IRQ (1, pST_IMR & (1 << 3), now >= pST_SR_ALMS_expiration);
+	//IRQ (10, ...);
 
 	// bail on unsupported interrupts
-	if (pAIC_IMR & ~0x00000002)
+	if (pAIC_IMR & ~0x00000402)
 		bail (1074011);
 	if (pST_IMR  & ~0x00000009)
 		bail (5312453);
