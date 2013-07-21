@@ -1,10 +1,9 @@
 #include "irq.inc"
 
-#define IRQ(n,precond,cond) do { \
+#define IRQ(n,mask,stat) do { \
 	if (pAIC_IMR & (1 << n)) \
-		if (precond) \
-			if (INT (_irqTest (n, cond))) \
-				return; \
+		if (INT (_irqTest (n, (mask) & (stat)))) \
+			return; \
 } while (0)
 
 function _irqTest (n, cond)
@@ -32,15 +31,13 @@ function _irqTest (n, cond)
 
 function _irqPoll ()
 {
-	var now = 0.0;
-
 	if (getCPSR () & PSR_I) // IRQs masked, FIQs not supported
 		return;
 
 	// ST interrupts
-	now = getMilliseconds ();
-	IRQ (1, pST_IMR & (1 << 0), now >= pST_SR_PITS_expiration);
-	IRQ (1, pST_IMR & (1 << 3), now >= pST_SR_ALMS_expiration);
+	IRQ (1, pST_IMR, INT (_pSTGetSR (0)));
+	
+	// MCI interrupts
 	//IRQ (10, ...);
 
 	// bail on unsupported interrupts

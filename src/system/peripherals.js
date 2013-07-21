@@ -357,6 +357,38 @@ function _pSTUpdateALMS (force)
 		pST_SR_ALMS_expiration = newExpiration;
 }
 
+function _pSTGetSR (update)
+{
+	var ret = 0;
+	var now = 0.0;
+
+	now = getMilliseconds ();
+
+	if (now >= pST_SR_PITS_expiration)
+	{
+		ret = ret | (1 << 0);
+		elapsed = now - pST_PIMR_timestamp;
+		if (update)
+			pST_SR_PITS_expiration = pST_PIMR_timestamp + (ceil (elapsed / pST_PIMR_period) * pST_PIMR_period);
+	}
+
+	if (now >= pST_SR_RTTINC_expiration)
+	{
+		ret = ret | (1 << 2);
+		_pSTUpdateCRTR ();
+		if (update)
+			pST_SR_RTTINC_expiration = pST_CRTR_timestamp + pST_RTMR_ticktime;
+	}
+
+	if (now >= pST_SR_ALMS_expiration)
+	{
+		ret = ret | (1 << 3);
+		_pSTUpdateALMS (update);
+	}
+
+	return INT (ret);
+}
+
 function _pSTRead (offset)
 {
 	PARAM_INT (offset);
@@ -370,34 +402,10 @@ function _pSTRead (offset)
 	switch (S32 (offset))
 	{
 		case 0x10: // ST_SR
-
-			now = getMilliseconds ();
-
-			if (now >= pST_SR_PITS_expiration)
-			{
-				ret = ret | (1 << 0);
-				elapsed = now - pST_PIMR_timestamp;
-				pST_SR_PITS_expiration = pST_PIMR_timestamp + (ceil (elapsed / pST_PIMR_period) * pST_PIMR_period);
-			}
-
-			if (now >= pST_SR_RTTINC_expiration)
-			{
-				ret = ret | (1 << 2);
-				_pSTUpdateCRTR ();
-				pST_SR_RTTINC_expiration = pST_CRTR_timestamp + pST_RTMR_ticktime;
-			}
-
-			if (now >= pST_SR_ALMS_expiration)
-			{
-				ret = ret | (1 << 3);
-				_pSTUpdateALMS (1);
-			}
-
 			memoryError = STAT_OK;
-			return INT (ret);
+			return INT (_pSTGetSR (1));
 
 		case 0x24: // ST_CRTR
-
 			_pSTUpdateCRTR ();
 			memoryError = STAT_OK;
 			return INT (pST_CRTR);
