@@ -1,6 +1,5 @@
 #include "peripherals.inc"
 #include "core.inc"
-#include "sd.inc"
 
 /************************************************************
  User peripherals   : 1111 1111 1111 1xxx xx00 0000 0000 0000
@@ -38,10 +37,6 @@ var pMCI_RNPR = 0;
 var pMCI_RCR = 0;
 var pMCI_RNCR = 0;
 var pMCI_PTSR = 0;
-var pMCI_rxBegin = 0;
-var pMCI_rxEnd = 0;
-var pMCI_txBegin = 0;
-var pMCI_txEnd = 0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -473,6 +468,7 @@ function _pSTWrite (offset, value)
 	bail (8823126);
 }
 
+/*
 function _pMCIRequest ()
 {
 	if (pMCI_CMDR >> 8 & 0x07 & ~0x01) // unimplemented SPCMD
@@ -482,7 +478,7 @@ function _pMCIRequest ()
 	sdCommand (pMCI_CMDR & 0x3F, pMCI_ARGR);
 }
 
-function _pMCIRespond4 (v0, v1, v2, v3)
+function _pMCIRespond (v0, v1, v2, v3)
 {
 	PARAM_INT (v0);
 	PARAM_INT (v1);
@@ -494,56 +490,33 @@ function _pMCIRespond4 (v0, v1, v2, v3)
 	wordView[(ADDR_MCI_RESPONSE_ARRAY + 8) >> 2] = v2;
 	wordView[(ADDR_MCI_RESPONSE_ARRAY + 12) >> 2] = v3;
 
+	pMCI_RSPR_offset = 0;
 	pMCI_SR = pMCI_SR | 0x01;
 }
+*/
 
-function _pMCIRespond1 (v)
+function _pMCICommandCallback ()
 {
-	PARAM_INT (v);
-	_pMCIRespond4 (v, 0, 0, 0);
+	bail (190813);
 }
 
-function _pMCIRespond0 ()
+function _pMCIReadCallback ()
 {
-	_pMCIRespond4 (0, 0, 0, 0);
+	bail (290815);
 }
 
-function _pMCIDataIn (word)
+function _pMCIWriteCallback ()
 {
-	PARAM_INT (word);
-
-	if (S32 (pMCI_rxEnd - pMCI_rxBegin) >= SIZE_MCI_RX_BUFFER) // overflow
-	{
-		pMCI_SR = pMCI_SR | (1 << 30);
-		return;
-	}
-
-	wordView[(ADDR_MCI_RX_BUFFER + (pMCI_rxEnd & (SIZE_MCI_RX_BUFFER - 1))) >> 2] = word;
-	pMCI_rxEnd = INT (pMCI_rxEnd + 4);
-}
-
-function _pMCIDataOut ()
-{
-	bail (189023);
+	bail (390815);
 }
 
 function _pMCIRunDMA ()
 {
-	var word = 0;
-
 	if (!(pMCI_MR & 0x8000))
 		return;
 	if (!(pMCI_PTSR & 0x0001))
 		return;
-
-	while ((S32 (pMCI_rxEnd - pMCI_rxBegin) > 0) & (S32 (pMCI_RCR) > 0))
-	{
-		word = INT (wordView[ADDR_MCI_RX_BUFFER + (pMCI_rxBegin & (SIZE_MCI_RX_BUFFER - 1)) >> 2]);
-		writeWordPhysical (pMCI_RPR, word);
-		pMCI_rxBegin = INT (pMCI_rxBegin + 4);
-		pMCI_RPR = INT (pMCI_RPR + 4);
-		pMCI_RCR = INT (pMCI_RCR - 1);
-	}
+	bail (9180349);
 }
 
 function _pMCIGetSR (update)
@@ -621,8 +594,14 @@ function _pMCIWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x14: // MCI_CMDR
-			pMCI_CMDR = value;
-			_pMCIRequest ();
+			if (pMCI_SR & 0x01)
+			{
+				if (value >> 8 & 0x06) // sunpported SPCMD
+					bail (614515);
+				pMCI_CMDR = value;
+				pMCI_SR = pMCI_SR & ~0x01;
+				sdCommand (pMCI_CMDR & 0x3F, pMCI_ARGR);
+			}
 			memoryError = STAT_OK;
 			return;
 		case 0x18: // ??

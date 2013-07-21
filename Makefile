@@ -1,4 +1,4 @@
-COMMON := build/util.js build/system.js build/system/wrapper.js
+COMMON := build/util.js build/system.js build/system/wrapper.js build/sd.js
 OUTPUTS := output/www.js
 CPPFLAGS := -nostdinc -undef -P
 

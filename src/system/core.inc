@@ -7,6 +7,11 @@
 #define imul(x,y) FUNC_INT(imul,x,y)
 #define getMilliseconds() FUNC_DBL(getMilliseconds)
 
+/* SD functions */
+#define sdCommand(...) FUNC_VOID(sdCommand,__VA_ARGS__)
+#define sdRead(...) FUNC_VOID(sdRead,__VA_ARGS__)
+#define sdWrite(...) FUNC_VOID(sdWrite,__VA_ARGS__)
+
 /* defined functions */
 #define reset() FUNC_VOID(reset)
 #define getPC() FUNC_INT(getPC)

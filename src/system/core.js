@@ -33,6 +33,10 @@ function Core (stdlib, foreign, heap)
 	var bail = foreign.bail;
 	var print = foreign.print;
 
+	var _sdCommand = foreign.sdCommand;
+	var _sdRead = foreign.sdRead;
+	var _sdWrite = foreign.sdWrite;
+
 #define CP15_INCLUDE_VARIABLES
 #include "cp15.js"
 #undef CP15_INCLUDE_VARIABLES
@@ -307,8 +311,6 @@ function Core (stdlib, foreign, heap)
 #include "peripherals.js"
 #undef PERIPHERALS_INCLUDE_FUNCTIONS
 
-#include "sd.js"
-
 #define DECODER_INCLUDE_TABLES
 #include "decoder.js"
 #undef DECODER_INCLUDE_TABLES
@@ -318,6 +320,7 @@ function Core (stdlib, foreign, heap)
 #undef PERIPHERALS_INCLUDE_TABLES
 
 	return {
+		// general
 		getPC: _getPC,
 		setPC: _setPC,
 		getRegister: _getRegister,
@@ -325,6 +328,10 @@ function Core (stdlib, foreign, heap)
 		getCPSR: _getCPSR,
 		setCPSR: _setCPSR,
 		reset: _reset,
-		run: _run
+		run: _run,
+		// SD
+		sdCommandCallback: _pMCICommandCallback,
+		sdReadCallback: _pMCIReadCallback,
+		sdWriteCallback: _pMCIWriteCallback
 	};
 }

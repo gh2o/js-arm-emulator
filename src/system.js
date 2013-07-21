@@ -28,6 +28,7 @@ function System (options)
 	 *****************************************/
 
 	this.heap = new ArrayBuffer (heapSize);
+	this.sd = new SD ();
 
 	/*****************************************
 	 * BRING IN THE CORE                     *
@@ -47,6 +48,9 @@ function System (options)
 	this.getCPSR = this.core.getCPSR;
 	this.setCPSR = this.core.setCPSR;
 	this.run = this.core.run;
+	this.sd.doCommandCallback = this.core.sdCommandCallback;
+	this.sd.doReadCallback = this.core.sdReadCallback;
+	this.sd.dWriteCallback = this.core.sdWriteCallback;
 }
 
 System.prototype.needSwap = (function () {

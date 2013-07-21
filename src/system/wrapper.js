@@ -7,6 +7,7 @@
 System.prototype.linkCore = function () {
 
 	var system = this;
+	var sd = system.sd;
 
 	var foreign = {
 		needSwap: Number (system.needSwap),
@@ -52,7 +53,10 @@ System.prototype.linkCore = function () {
 		print: function (b) {
 			system.onConsoleByte (b & 0xFF);
 		},
-		getMilliseconds: getMilliseconds
+		getMilliseconds: getMilliseconds,
+		sdCommand: sd.doCommand.bind (sd),
+		sdRead: sd.doRead.bind (sd),
+		sdWrite: sd.doWrite.bind (sd)
 	};
 
 	var stdlib = (function () { return this; })();
