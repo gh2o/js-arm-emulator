@@ -510,7 +510,13 @@ function _pMCIRespond0 ()
 function _pMCIGetSR (update)
 {
 	PARAM_INT (update);
-	return INT (pMCI_SR);
+
+	var ret = 0;
+	ret = INT (pMCI_SR);
+
+	ret = ret | !(pMCI_RCR | pMCI_RNCR) << 14; // RXBUFF
+
+	return INT (ret);
 }
 
 function _pMCIRead (offset)
