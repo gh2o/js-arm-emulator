@@ -20,7 +20,7 @@ function _irqTest (n, cond)
 		bail (9055893);
 
 	// check priority
-	if (S32 (_pAICGetPriority (n)) <= S32 (pAIC_priomask))
+	if (1 << INT (_pAICGetPriority (n)) <= S32 (pAIC_priomask))
 		return 0;
 
 	// let's go
