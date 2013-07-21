@@ -359,8 +359,11 @@ function _pSTUpdateALMS (force)
 
 function _pSTGetSR (update)
 {
+	PARAM_INT (update);
+
 	var ret = 0;
 	var now = 0.0;
+	var elapsed = 0.0;
 
 	now = getMilliseconds ();
 
@@ -459,13 +462,12 @@ function _pMCIRead (offset)
 {
 	PARAM_INT (offset);
 
-	switch (offset)
+	switch (S32 (offset))
 	{
 		case 0x04: // MCI_MR
 			memoryError = STAT_OK;
-			return pMCI_MR;
+			return INT (pMCI_MR);
 		case 0x40: // MCI_SR
-			console.log ('MCI_SR');
 			memoryError = STAT_OK;
 			return 0x1;
 		case 0x4C: // MCI_IMR
@@ -486,45 +488,36 @@ function _pMCIWrite (offset, value)
 	PARAM_INT (offset);
 	PARAM_INT (value);
 
-	switch (offset)
+	switch (S32 (offset))
 	{
 		case 0x00: // MCI_CR
-			console.log ("MCI_CR = " + formatHex (value));
 			memoryError = STAT_OK;
 			return;
 		case 0x04: // MCI_MR
-			console.log ("MCI_MR = " + formatHex (value));
 			pMCI_MR = value;
 			memoryError = STAT_OK;
 			return;
 		case 0x0C: // MCI_SDCR
-			console.log ("MCI_SDCR = " + formatHex (value));
 			memoryError = STAT_OK;
 			return;
 		case 0x10: // MCI_ARGR
-			console.log ("MCI_ARGR = " + formatHex (value));
 			memoryError = STAT_OK;
 			return;
 		case 0x14: // MCI_CMDR
-			console.log ("MCI_CMDR = " + formatHex (value));
-			console.log ("CMDNB = " + (value & 0x3F));
 			memoryError = STAT_OK;
 			return;
 		case 0x44: // MCI_IER
-			console.log ("MCI_IER = " + formatHex (value));
 			if (value & ~1)
 				bail (8179874);
 			memoryError = STAT_OK;
 			return;
 		case 0x48: // MCI_IDR
-			console.log ("MCI_IDR = " + formatHex (value));
 			memoryError = STAT_OK;
 			return;
 	}
 
 	log (LOG_ID, 4543941, LOG_HEX, S32 (offset), LOG_HEX, S32 (value));
 	bail (4543941);
-	return 0;
 }
 #endif
 
