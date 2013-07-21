@@ -1,6 +1,10 @@
 #include "peripherals.inc"
 #include "core.inc"
 
+#define MCI_CMDR_TRANSFER_OFF 0
+#define MCI_CMDR_TRANSFER_RX  1
+#define MCI_CMDR_TRANSFER_TX  2
+
 /************************************************************
  User peripherals   : 1111 1111 1111 1xxx xx00 0000 0000 0000
  System peripherals : 1111 1111 1111 1111 1111 xxxx 0000 0000
@@ -31,6 +35,7 @@ var pMCI_MR = 0;
 var pMCI_IMR = 0;
 var pMCI_ARGR = 0;
 var pMCI_CMDR = 0;
+var pMCI_CMDR_transfer = MCI_CMDR_TRANSFER_OFF;
 var pMCI_RSPR_offset = 0;
 var pMCI_RPR = 0;
 var pMCI_RNPR = 0;
@@ -484,9 +489,12 @@ function _pMCICommandCallback (v0, v1, v2, v3)
 	pMCI_SR = pMCI_SR | 0x01;
 }
 
-function _pMCIReadCallback ()
+function _pMCIReadCallback (word)
 {
-	bail (290815);
+	PARAM_INT (word);
+	writeWordPhysical (pMCI_RPR, word);
+	pMCI_RPR = INT (pMCI_RPR + 4);
+	pMCI_RCR = INT (pMCI_RCR - 1);
 }
 
 function _pMCIWriteCallback ()
@@ -498,9 +506,18 @@ function _pMCIRunDMA ()
 {
 	if (!(pMCI_MR & 0x8000))
 		return;
-	if (!(pMCI_PTSR & 0x0001))
-		return;
-	bail (9180349);
+
+	switch (pMCI_CMDR_transfer)
+	{
+		case MCI_CMDR_TRANSFER_OFF:
+			break;
+		case MCI_CMDR_TRANSFER_RX:
+			if (!!(pMCI_PTSR & 0x0001) & !!pMCI_RCR)
+				sdRead (pMCI_RCR << 2);
+			break;
+		case MCI_CMDR_TRANSFER_TX:
+			bail (17464);
+	}
 }
 
 function _pMCIGetSR (update)
@@ -580,10 +597,27 @@ function _pMCIWrite (offset, value)
 		case 0x14: // MCI_CMDR
 			if (pMCI_SR & 0x01)
 			{
+				pMCI_SR = pMCI_SR & ~0x01;
+
 				if (value >> 8 & 0x06) // sunpported SPCMD
 					bail (614515);
+
 				pMCI_CMDR = value;
-				pMCI_SR = pMCI_SR & ~0x01;
+				switch (value >> 16 & 3)
+				{
+					case 0:
+					case 3:
+						break;
+					case 1:
+						pMCI_CMDR_transfer = (value & (1 << 18)) ?
+							MCI_CMDR_TRANSFER_RX :
+							MCI_CMDR_TRANSFER_TX;
+						break;
+					case 2:
+						pMCI_CMDR_transfer = MCI_CMDR_TRANSFER_OFF;
+						break;
+				}
+
 				sdCommand (pMCI_CMDR & 0x3F, pMCI_ARGR);
 			}
 			memoryError = STAT_OK;
