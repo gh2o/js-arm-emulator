@@ -27,10 +27,12 @@ var pST_SR_RTTINC_expiration = 0.0;
 var pST_SR_ALMS_expiration = 0.0;
 
 var pMCI_SR = 0x1;
-var pMCI_IMR = 0;
 var pMCI_MR = 0;
+var pMCI_IMR = 0;
 var pMCI_ARGR = 0;
 var pMCI_RSPR_offset = 0;
+var pMCI_RPR = 0;
+var pMCI_RCR = 0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -586,6 +588,14 @@ function _pMCIWrite (offset, value)
 			return;
 		case 0x48: // MCI_IDR
 			pMCI_IMR = pMCI_IMR & ~value;
+			memoryError = STAT_OK;
+			return;
+		case 0x100: // MCI_RPR
+			pMCI_RPR = value;
+			memoryError = STAT_OK;
+			return;
+		case 0x104: // MCI_RCR
+			pMCI_RCR = value;
 			memoryError = STAT_OK;
 			return;
 	}
