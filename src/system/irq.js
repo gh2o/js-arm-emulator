@@ -25,7 +25,7 @@ function _irqTest (n, cond)
 
 	// let's go
 	pAIC_IPR = pAIC_IPR | (1 << n);
-	triggerException (MODE_irq);
+	triggerException (MODE_irq, 0x18);
 	return 1;
 }
 

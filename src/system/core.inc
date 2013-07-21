@@ -24,7 +24,7 @@
 #define setSPSR(v) FUNC_VOID(setSPSR,v)
 #define isPrivileged() FUNC_INT(isPrivileged)
 #define memoryAddressToHeapOffset(a) FUNC_INT(memoryAddressToHeapOffset,a)
-#define triggerException(m) FUNC_VOID(triggerException,m)
+#define triggerException(m,t) FUNC_VOID(triggerException,m,t)
 #define run(n) FUNC_VOID(run,n)
 #define execute(i) FUNC_INT(execute,i)
 #define subexecute(i) FUNC_INT(subexecute,i)

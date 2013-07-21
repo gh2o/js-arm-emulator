@@ -180,13 +180,13 @@ function Core (stdlib, foreign, heap)
 		return INT (addr - memoryOffset + MEMORY_START);
 	}
 
-	function _triggerException (mode)
+	function _triggerException (mode, target)
 	{
 		PARAM_INT (mode);
+		PARAM_INT (target);
 
 		var cpsr = 0;
 		var spsr = 0;
-		var tgt = 0;
 
 		cpsr = getCPSR ();
 		spsr = cpsr;
@@ -195,23 +195,21 @@ function Core (stdlib, foreign, heap)
 		{
 			case MODE_irq:
 				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
-				tgt = 0x18;
 				break;
 			case MODE_abt:
 				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
-				tgt = 0x10;
 				break;
 			default:
 				bail (2904175);
 				break;
 		}
 
-		tgt = tgt | ((cp15_SCTLR & CP15_SCTLR_V) ? 0xFFFF0000 : 0);
+		target = target | ((cp15_SCTLR & CP15_SCTLR_V) ? 0xFFFF0000 : 0);
 
 		setCPSR (cpsr);
 		setSPSR (spsr);
 		setRegister (REG_LR, INT (getPC () + 4));
-		setRegister (REG_PC, tgt);
+		setRegister (REG_PC, target);
 	}
 
 	function _run (numInstructions)
@@ -229,14 +227,14 @@ function Core (stdlib, foreign, heap)
 				irqPoll ();
 			tickCount = INT (tickCount + 1);
 
-			// get and advance program counter
+			// get and read at program counter
 			pc = getPC ();
-			setPC (INT (pc + 4));
-
-			// read instruction at PC
 			inst = readWord (pc, MMU_TRANSLATE_EXECUTE);
 			if (memoryError)
-				bail (12980); // prefetch abort
+				triggerException (MODE_abt, 0x0C);
+
+			// advance program counter before execution
+			setPC (INT (pc + 4));
 
 			// execute the instruction
 			stat = execute (inst);
@@ -245,7 +243,7 @@ function Core (stdlib, foreign, heap)
 				case STAT_OK:
 					break;
 				case STAT_ABT: // data abort
-					triggerException (MODE_abt);
+					triggerException (MODE_abt, 0x10);
 					break;
 				default:
 					bail (13515); // some stupid error occurred
