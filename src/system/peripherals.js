@@ -32,7 +32,10 @@ var pMCI_IMR = 0;
 var pMCI_ARGR = 0;
 var pMCI_RSPR_offset = 0;
 var pMCI_RPR = 0;
+var pMCI_RNPR = 0;
 var pMCI_RCR = 0;
+var pMCI_RNCR = 0;
+var pMCI_PTSR = 0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -472,13 +475,7 @@ function _pMCIRequest (cmdr)
 
 	spcmd = (cmdr >> 8) & 0x07;
 	if (spcmd & ~0x01)
-	{
 		bail (1645211);
-		return;
-	}
-
-	if (cmdr & 0xFFFF0000)
-		bail (15443179);
 
 	pMCI_SR = pMCI_SR & ~0x01;
 	sdCommand (cmdr & 0x3F, pMCI_ARGR);
@@ -596,6 +593,10 @@ function _pMCIWrite (offset, value)
 			return;
 		case 0x104: // MCI_RCR
 			pMCI_RCR = value;
+			memoryError = STAT_OK;
+			return;
+		case 0x120: // MCI_PTCR
+			pMCI_PTSR = value & ~(value >> 1) & 0x0101;
 			memoryError = STAT_OK;
 			return;
 	}
