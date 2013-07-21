@@ -1,4 +1,5 @@
 #include "peripherals.inc"
+#include "core.inc"
 #include "sd.inc"
 
 /************************************************************
@@ -30,12 +31,17 @@ var pMCI_SR = 0x1;
 var pMCI_MR = 0;
 var pMCI_IMR = 0;
 var pMCI_ARGR = 0;
+var pMCI_CMDR = 0;
 var pMCI_RSPR_offset = 0;
 var pMCI_RPR = 0;
 var pMCI_RNPR = 0;
 var pMCI_RCR = 0;
 var pMCI_RNCR = 0;
 var pMCI_PTSR = 0;
+var pMCI_rxBegin = 0;
+var pMCI_rxEnd = 0;
+var pMCI_txBegin = 0;
+var pMCI_txEnd = 0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -467,18 +473,13 @@ function _pSTWrite (offset, value)
 	bail (8823126);
 }
 
-function _pMCIRequest (cmdr)
+function _pMCIRequest ()
 {
-	PARAM_INT (cmdr);
-
-	var spcmd = 0;
-
-	spcmd = (cmdr >> 8) & 0x07;
-	if (spcmd & ~0x01)
+	if (pMCI_CMDR >> 8 & 0x07 & ~0x01) // unimplemented SPCMD
 		bail (1645211);
 
 	pMCI_SR = pMCI_SR & ~0x01;
-	sdCommand (cmdr & 0x3F, pMCI_ARGR);
+	sdCommand (pMCI_CMDR & 0x3F, pMCI_ARGR);
 }
 
 function _pMCIRespond4 (v0, v1, v2, v3)
@@ -507,13 +508,54 @@ function _pMCIRespond0 ()
 	_pMCIRespond4 (0, 0, 0, 0);
 }
 
+function _pMCIDataIn (word)
+{
+	PARAM_INT (word);
+
+	if (S32 (pMCI_rxEnd - pMCI_rxBegin) >= SIZE_MCI_RX_BUFFER) // overflow
+	{
+		pMCI_SR = pMCI_SR | (1 << 30);
+		return;
+	}
+
+	wordView[(ADDR_MCI_RX_BUFFER + (pMCI_rxEnd & (SIZE_MCI_RX_BUFFER - 1))) >> 2] = word;
+	pMCI_rxEnd = INT (pMCI_rxEnd + 4);
+}
+
+function _pMCIDataOut ()
+{
+	bail (189023);
+}
+
+function _pMCIRunDMA ()
+{
+	var word = 0;
+
+	if (!(pMCI_MR & 0x8000))
+		return;
+	if (!(pMCI_PTSR & 0x0001))
+		return;
+
+	while ((S32 (pMCI_rxEnd - pMCI_rxBegin) > 0) & (S32 (pMCI_RCR) > 0))
+	{
+		word = INT (wordView[ADDR_MCI_RX_BUFFER + (pMCI_rxBegin & (SIZE_MCI_RX_BUFFER - 1)) >> 2]);
+		writeWordPhysical (pMCI_RPR, word);
+		pMCI_rxBegin = INT (pMCI_rxBegin + 4);
+		pMCI_RPR = INT (pMCI_RPR + 4);
+		pMCI_RCR = INT (pMCI_RCR - 1);
+	}
+}
+
 function _pMCIGetSR (update)
 {
 	PARAM_INT (update);
 
 	var ret = 0;
-	ret = INT (pMCI_SR);
 
+	_pMCIRunDMA ();
+	pMCI_SR = pMCI_SR | !pMCI_RCR << 6;
+
+	ret = INT (pMCI_SR);
 	ret = ret | !(pMCI_RCR | pMCI_RNCR) << 14; // RXBUFF
 
 	return INT (ret);
@@ -540,7 +582,7 @@ function _pMCIRead (offset)
 			return INT (ret);
 		case 0x40: // MCI_SR
 			memoryError = STAT_OK;
-			return 0x1;
+			return INT (_pMCIGetSR (1));
 		case 0x4C: // MCI_IMR
 			memoryError = STAT_OK;
 			return INT (pMCI_IMR);
@@ -579,7 +621,8 @@ function _pMCIWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x14: // MCI_CMDR
-			_pMCIRequest (value);
+			pMCI_CMDR = value;
+			_pMCIRequest ();
 			memoryError = STAT_OK;
 			return;
 		case 0x18: // ??
@@ -599,6 +642,7 @@ function _pMCIWrite (offset, value)
 			return;
 		case 0x104: // MCI_RCR
 			pMCI_RCR = value;
+			pMCI_SR = pMCI_SR & ~(1 << 6);
 			memoryError = STAT_OK;
 			return;
 		case 0x120: // MCI_PTCR

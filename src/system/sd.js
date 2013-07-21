@@ -10,6 +10,7 @@
 #define SD_STATUS_CURRENT_STATE_ident (2  << 9)
 #define SD_STATUS_CURRENT_STATE_stby  (3  << 9)
 #define SD_STATUS_CURRENT_STATE_tran  (4  << 9)
+#define SD_STATUS_CURRENT_STATE_data  (5  << 9)
 
 #define SD_STATUS_ILLEGAL_COMMAND (1 << 22)
 #define SD_STATUS_APP_CMD         (1 <<  5)
@@ -38,9 +39,37 @@ function _sdCommand (cmd, arg)
 	{
 		switch (cmd)
 		{
+			case 13:
+				sdStatus = sdStatus & ~SD_STATUS_CURRENT_STATE | SD_STATUS_CURRENT_STATE_data;
+				_pMCIRespond1 (sdStatus);
+				_pMCIDataIn (0x00000000); // [511:480]
+				_pMCIDataIn (0x00000000); // [479:448]
+				_pMCIDataIn (0x00000000); // [447:416]
+				_pMCIDataIn (0x00000000); // [415:384]
+				_pMCIDataIn (0); // [383:352]
+				_pMCIDataIn (0); // [351:320]
+				_pMCIDataIn (0); // [319:288]
+				_pMCIDataIn (0); // [287:256]
+				_pMCIDataIn (0); // [255:224]
+				_pMCIDataIn (0); // [223:192]
+				_pMCIDataIn (0); // [191:160]
+				_pMCIDataIn (0); // [159:128]
+				_pMCIDataIn (0); // [127:96]
+				_pMCIDataIn (0); // [95:64]
+				_pMCIDataIn (0); // [63:32]
+				_pMCIDataIn (0); // [31:0]
+				sdStatus = sdStatus & ~SD_STATUS_CURRENT_STATE | SD_STATUS_CURRENT_STATE_tran;
+				return;
 			case 41:
 				sdStatus = sdStatus & ~SD_STATUS_CURRENT_STATE | SD_STATUS_CURRENT_STATE_ready;
 				_pMCIRespond1 (0x80FF0000);
+				return;
+			case 51:
+				sdStatus = sdStatus & ~SD_STATUS_CURRENT_STATE | SD_STATUS_CURRENT_STATE_data;
+				_pMCIRespond1 (sdStatus);
+				_pMCIDataIn (0);
+				_pMCIDataIn (0);
+				sdStatus = sdStatus & ~SD_STATUS_CURRENT_STATE | SD_STATUS_CURRENT_STATE_tran;
 				return;
 		}
 	}
