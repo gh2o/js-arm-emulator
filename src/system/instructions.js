@@ -652,7 +652,7 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
  * LOAD AND STORE MULTIPLE INSTRUCTIONS *
  ****************************************/
 
-function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
+function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S, US)
 {
 	PARAM_INT (L);
 	PARAM_INT (Rn);
@@ -660,9 +660,11 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 	PARAM_INT (addressing_mode);
 	PARAM_INT (W);
 	PARAM_INT (S);
+	PARAM_INT (US);
 
 	var origBase = 0;
 	var origPC = 0;
+	var origCPSR = 0;
 
 	var i = 0;
 	var ptr = 0;
@@ -670,10 +672,14 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 
 	origBase = getRegister (Rn);
 	origPC = getPC ();
+	origCPSR = getCPSR ();
 
 	ptr = origBase;
 	if (ptr & 0x03)
 		bail (13451701); // unaligned access
+	if (US)
+		if (isPrivileged ())
+			setCPSR (origCPSR & ~PSR_M | MODE_sys);
 
 	// possible problem: assuming memoryError is STAT_OK on entry
 	switch (S32 (addressing_mode))
@@ -735,6 +741,7 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S)
 			break;
 	}
 
+	setCPSR (origCPSR);
 	if (memoryError)
 	{
 		// restore to comply with abort model

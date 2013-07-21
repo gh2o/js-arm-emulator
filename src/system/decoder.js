@@ -369,7 +369,8 @@ function SUBDECODER_FUNCTION (LDM_STM) (inst)
 		inst & 0xFFFF,      // register list
 		(inst >> 23) & 0x3, // addressing mode (P/U bits)
 		inst & (1 << 21),   // W
-		0                   // S
+		0,                  // S
+		0                   // US
 	);
 }
 
@@ -377,20 +378,18 @@ function SUBDECODER_FUNCTION (LDM_STM_privileged) (inst)
 {
 	PARAM_INT (inst);
 
-	if ((inst & 0x108000) == 0x108000) // LDM and PC in register list
-	{
-		return inst_LDM_STM (
-			inst & (1 << 20),   // L
-			Rn,                 // Rn
-			inst & 0xFFFF,      // register list
-			(inst >> 23) & 0x3, // addressing mode (P/U bits)
-			inst & (1 << 21),   // W
-			1                   // S
-		);
-	}
+	var S = 0;
+	S = (inst & 0x108000) == 0x108000;
 
-	bail (724190);
-	return 0;
+	return inst_LDM_STM (
+		inst & (1 << 20),   // L
+		Rn,                 // Rn
+		inst & 0xFFFF,      // register list
+		(inst >> 23) & 0x3, // addressing mode (P/U bits)
+		inst & (1 << 21),   // W
+		S,                  // S
+		!S                  // US (LDM(2)/STM(2))
+	);
 }
 
 /****************************************
@@ -659,7 +658,7 @@ var DECODER_TABLE = [
 	/* 0x92 */ FILL16(LDM_STM),
 	/* 0x93 */ FILL16(LDM_STM),
 	/* 0x94 */ FILL16(UND),
-	/* 0x95 */ FILL16(UND),
+	/* 0x95 */ FILL16(LDM_STM_privileged),
 	/* 0x96 */ FILL16(UND),
 	/* 0x97 */ FILL16(UND),
 	/* 0x98 */ FILL16(LDM_STM),
