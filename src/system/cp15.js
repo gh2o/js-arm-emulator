@@ -177,11 +177,20 @@ function _cp15_write (CRn, opcode_1, CRm, opcode_2, Rd)
 					case 0x50:
 						// UNIMPLEMENTED: invalidate instruction TLB
 						return STAT_OK;
+					case 0x51:
+						// UNIMPLEMENTED: invalidate instruction entry (MVA)
+						return STAT_OK;
 					case 0x60:
 						// UNIMPLEMENTED: invalidate data TLB
 						return STAT_OK;
+					case 0x61:
+						// UNIMPLEMENTED: invalidate data entry (MVA)
+						return STAT_OK;
 					case 0x70:
-						// UNIMPLEMENTED: invalidate all TLBs
+						// UNIMPLEMENTED: invalidate unified TLB
+						return STAT_OK;
+					case 0x71:
+						// UNIMPLEMENTED: invalidate unified entry (MVA)
 						return STAT_OK;
 				}
 			}

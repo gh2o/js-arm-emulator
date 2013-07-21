@@ -77,6 +77,9 @@ SD.prototype.doCommand = function (cmd, arg)
 			this.doCommandCallback (this.status);
 			this.setMode (SD_STATUS_CURRENT_STATE_tran);
 			return;
+		case NRM_CMD (13):
+			this.doCommandCallback (this.status);
+			return;
 		case NRM_CMD (18):
 			this.initData (cmd, arg);
 			this.doCommandCallback (this.status);
