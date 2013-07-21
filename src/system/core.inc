@@ -64,6 +64,7 @@
    Peripherals:
 
      AIC: 0x0100 - 0x0240
+     MCI: 0x0280 - 0x0290
 
  ****************************************/
 
@@ -81,3 +82,5 @@
 #define ADDR_AIC_SVR_ARRAY (0x0180)
 #define ADDR_AIC_IRQ_STACK (0x0200)
 #define ADDR_AIC_PRIO_STACK (0x0220)
+
+#define ADDR_MCI_RESPONSE_ARRAY (0x0280)
