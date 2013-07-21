@@ -66,11 +66,6 @@
      AIC: 0x0100 - 0x0240
      MCI: 0x0280 - 0x0290
 
-   Buffers:
-
-     MCI (RX): 0x1000 - 0x2000
-     MCI (TX): 0x2000 - 0x3000
-
  ****************************************/
 
 #define ADDR_CPSR (0x0040)
@@ -89,8 +84,3 @@
 #define ADDR_AIC_PRIO_STACK (0x0220)
 
 #define ADDR_MCI_RESPONSE_ARRAY (0x0280)
-
-#define ADDR_MCI_RX_BUFFER (0x1000)
-#define SIZE_MCI_RX_BUFFER (0x1000)
-#define ADDR_MCI_TX_BUFFER (0x2000)
-#define SIZE_MCI_TX_BUFFER (0x1000)
