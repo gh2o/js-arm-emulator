@@ -306,6 +306,8 @@ function Core (stdlib, foreign, heap)
 #include "peripherals.js"
 #undef PERIPHERALS_INCLUDE_FUNCTIONS
 
+#include "sd.js"
+
 #define DECODER_INCLUDE_TABLES
 #include "decoder.js"
 #undef DECODER_INCLUDE_TABLES

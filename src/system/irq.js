@@ -38,11 +38,13 @@ function _irqPoll ()
 	IRQ (1, pST_IMR, INT (_pSTGetSR (0)));
 	
 	// MCI interrupts
-	//IRQ (10, ...);
+	IRQ (10, pMCI_IMR, INT (_pMCIGetSR (0)));
 
 	// bail on unsupported interrupts
 	if (pAIC_IMR & ~0x00000402)
 		bail (1074011);
 	if (pST_IMR  & ~0x00000009)
 		bail (5312453);
+	if (pMCI_IMR & ~0x00000001)
+		bail (5343251);
 }

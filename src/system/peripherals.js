@@ -1,4 +1,5 @@
 #include "peripherals.inc"
+#include "sd.inc"
 
 /************************************************************
  User peripherals   : 1111 1111 1111 1xxx xx00 0000 0000 0000
@@ -27,6 +28,7 @@ var pST_SR_ALMS_expiration = 0.0;
 
 var pMCI_IMR = 0;
 var pMCI_MR = 0;
+var pMCI_ARGR = 0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -458,7 +460,7 @@ function _pSTWrite (offset, value)
 	bail (8823126);
 }
 
-function _pMCICommand (cmdr)
+function _pMCIRequest (cmdr)
 {
 	PARAM_INT (cmdr);
 
@@ -481,6 +483,12 @@ function _pMCICommand (cmdr)
 		bail (15443179);
 
 	sdCommand (cmdr & 0x3F, pMCI_ARGR);
+}
+
+function _pMCIGetSR (update)
+{
+	PARAM_INT (update);
+	return 0x1;
 }
 
 function _pMCIRead (offset)
@@ -526,17 +534,14 @@ function _pMCIWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x10: // MCI_ARGR
-			console.log (">>> MCI_ARGR = " + formatHex (value));
+			pMCI_ARGR = value;
 			memoryError = STAT_OK;
 			return;
 		case 0x14: // MCI_CMDR
-			console.log (">>> MCI_CMDR = " + formatHex (value));
-			_pMCICommand (value);
+			_pMCIRequest (value);
 			memoryError = STAT_OK;
 			return;
 		case 0x44: // MCI_IER
-			if (value & ~1)
-				bail (8179874);
 			pMCI_IMR = pMCI_IMR | value;
 			memoryError = STAT_OK;
 			return;
