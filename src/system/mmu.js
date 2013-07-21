@@ -14,7 +14,7 @@ function _readWordPhysical (addr)
 	}
 
 	offset = memoryAddressToHeapOffset (addr);
-	if (U32 (offset) >= U32 (memorySize))
+	if (U32 (offset) >= U32 (heapSize))
 		return INT (readWordPeripheral (addr));
 
 	memoryError = STAT_OK;
@@ -36,7 +36,7 @@ function _writeWordPhysical (addr, value)
 	}
 
 	offset = memoryAddressToHeapOffset (addr);
-	if (U32 (offset) >= U32 (memorySize))
+	if (U32 (offset) >= U32 (heapSize))
 	{
 		writeWordPeripheral (addr, value);
 		return;
@@ -53,7 +53,7 @@ function _readBytePhysical (addr)
 	var offset = 0;
 
 	offset = memoryAddressToHeapOffset (addr);
-	if (U32 (offset) >= U32 (memorySize))
+	if (U32 (offset) >= U32 (heapSize))
 		return INT (readWordPeripheral (addr) & 0xFF);
 
 	memoryError = STAT_OK;
@@ -68,7 +68,7 @@ function _writeBytePhysical (addr, value)
 	var offset = 0;
 
 	offset = memoryAddressToHeapOffset (addr);
-	if (U32 (offset) >= U32 (memorySize))
+	if (U32 (offset) >= U32 (heapSize))
 	{
 		writeWordPeripheral (addr, value & 0xFF);
 		return;

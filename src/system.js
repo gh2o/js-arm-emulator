@@ -19,7 +19,7 @@ function System (options)
 	if ((options.memoryOffset & 0x0FFF) != 0)
 		throw new Error ("memoryOffset must be page aligned");
 
-	var heapSize = MEMORY_START + options.memorySize;
+	var heapSize = this.options.heapSize = MEMORY_START + options.memorySize;
 	if ((heapSize & (heapSize - 1)) != 0)
 		throw new Error ("MEMORY_START + memorySize must be power of two");
 

@@ -18,6 +18,7 @@ function Core (stdlib, foreign, heap)
 
 	var needSwap = INT (foreign.needSwap);
 
+	var heapSize = INT (foreign.heapSize);
 	var memoryOffset = INT (foreign.memoryOffset);
 	var memorySize = INT (foreign.memorySize);
 	var memoryError = 0;
