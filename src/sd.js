@@ -35,9 +35,6 @@ SD.prototype.initData = function (cmd, arg, array)
 
 SD.prototype.doCommand = function (cmd, arg)
 {
-	console.log (">>> cmd = " + cmd);
-	console.log (">>> arg = " + formatHex (arg));
-
 	cmd |= !!(this.status & SD_STATUS_APP_CMD) << 6;
 	this.status &= ~SD_STATUS_CLEAR_C;
 
