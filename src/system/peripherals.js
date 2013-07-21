@@ -26,9 +26,11 @@ var pST_SR_PITS_expiration = 0.0;
 var pST_SR_RTTINC_expiration = 0.0;
 var pST_SR_ALMS_expiration = 0.0;
 
+var pMCI_SR = 0x1;
 var pMCI_IMR = 0;
 var pMCI_MR = 0;
 var pMCI_ARGR = 0;
+var pMCI_RSPR_offset = 0;
 #endif
 
 #ifdef PERIPHERALS_INCLUDE_FUNCTIONS
@@ -467,39 +469,70 @@ function _pMCIRequest (cmdr)
 	var spcmd = 0;
 
 	spcmd = (cmdr >> 8) & 0x07;
-	switch (S32 (spcmd))
+	if (spcmd & ~0x01)
 	{
-		case 0:
-			break;
-		case 1:
-			sdReset ();
-			return;
-		default:
-			bail (1645211);
-			return;
+		bail (1645211);
+		return;
 	}
 
 	if (cmdr & 0xFFFF0000)
 		bail (15443179);
 
+	pMCI_SR = pMCI_SR & ~0x01;
 	sdCommand (cmdr & 0x3F, pMCI_ARGR);
+}
+
+function _pMCIRespond4 (v0, v1, v2, v3)
+{
+	PARAM_INT (v0);
+	PARAM_INT (v1);
+	PARAM_INT (v2);
+	PARAM_INT (v3);
+
+	wordView[(ADDR_MCI_RESPONSE_ARRAY + 0) >> 2] = v0;
+	wordView[(ADDR_MCI_RESPONSE_ARRAY + 4) >> 2] = v1;
+	wordView[(ADDR_MCI_RESPONSE_ARRAY + 8) >> 2] = v2;
+	wordView[(ADDR_MCI_RESPONSE_ARRAY + 12) >> 2] = v3;
+
+	pMCI_SR = pMCI_SR | 0x01;
+}
+
+function _pMCIRespond1 (v)
+{
+	PARAM_INT (v);
+	_pMCIRespond4 (v, 0, 0, 0);
+}
+
+function _pMCIRespond0 ()
+{
+	_pMCIRespond4 (0, 0, 0, 0);
 }
 
 function _pMCIGetSR (update)
 {
 	PARAM_INT (update);
-	return 0x1;
+	return INT (pMCI_SR);
 }
 
 function _pMCIRead (offset)
 {
 	PARAM_INT (offset);
 
+	var ret = 0;
+
 	switch (S32 (offset))
 	{
 		case 0x04: // MCI_MR
 			memoryError = STAT_OK;
 			return INT (pMCI_MR);
+		case 0x20: // MCI_RSPR
+		case 0x24:
+		case 0x28:
+		case 0x2C:
+			memoryError = STAT_OK;
+			ret = INT (wordView[(ADDR_MCI_RESPONSE_ARRAY + pMCI_RSPR_offset) >> 2]);
+			pMCI_RSPR_offset = (pMCI_RSPR_offset + 4) & 0x0F;
+			return INT (ret);
 		case 0x40: // MCI_SR
 			memoryError = STAT_OK;
 			return 0x1;
@@ -530,6 +563,9 @@ function _pMCIWrite (offset, value)
 			pMCI_MR = value;
 			memoryError = STAT_OK;
 			return;
+		case 0x08: // MCI_DTOR
+			memoryError = STAT_OK;
+			return;
 		case 0x0C: // MCI_SDCR
 			memoryError = STAT_OK;
 			return;
@@ -539,6 +575,9 @@ function _pMCIWrite (offset, value)
 			return;
 		case 0x14: // MCI_CMDR
 			_pMCIRequest (value);
+			memoryError = STAT_OK;
+			return;
+		case 0x18: // ??
 			memoryError = STAT_OK;
 			return;
 		case 0x44: // MCI_IER
