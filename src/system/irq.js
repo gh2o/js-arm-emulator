@@ -45,6 +45,6 @@ function _irqPoll ()
 		bail (1074011);
 	if (pST_IMR  & ~0x00000009)
 		bail (5312453);
-	if (pMCI_IMR & ~0xc0604041)
+	if (pMCI_IMR & ~0xc0604061)
 		bail (5343251);
 }

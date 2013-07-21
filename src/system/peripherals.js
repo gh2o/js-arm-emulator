@@ -531,6 +531,7 @@ function _pMCIGetSR (update)
 
 	ret = INT (pMCI_SR);
 	ret = ret | !(pMCI_RCR | pMCI_RNCR) << 14; // RXBUFF
+	ret = ret | (pMCI_CMDR_transfer == MCI_CMDR_TRANSFER_OFF) << 5; // NOTBUSY
 
 	return INT (ret);
 }
