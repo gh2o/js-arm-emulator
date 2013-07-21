@@ -4,7 +4,7 @@
 #define ROTATE_RIGHT(x,y) ( ((x)>>>(y)) | ((x)<<(32-(y))) )
 #define EXTRACT_NIBBLE(x,off) ((x) >> (off) & 0x0F)
 
-#define CORE_MEMORY 4096
+#define CORE_MEMORY 0x100000
 #define MEMORY_START CORE_MEMORY
 
 #define LOG_ID (0)
