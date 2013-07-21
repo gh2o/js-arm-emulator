@@ -145,6 +145,12 @@ function _cp15_write (CRn, opcode_1, CRm, opcode_2, Rd)
 					case 0x51:
 						// UNIMPLEMENTED: invalidate instruction cache line (MVA)
 						return STAT_OK;
+					case 0x60:
+						// UNIMPLEMENTED: invalidate data cache
+						return STAT_OK;
+					case 0x61:
+						// UNIMPLEMENTED: invalidate data cache line (MVA)
+						return STAT_OK;
 					case 0x70:
 						// UNIMPLEMENTED: invalidate all caches
 						return STAT_OK;
