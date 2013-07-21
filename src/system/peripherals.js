@@ -468,17 +468,7 @@ function _pSTWrite (offset, value)
 	bail (8823126);
 }
 
-/*
-function _pMCIRequest ()
-{
-	if (pMCI_CMDR >> 8 & 0x07 & ~0x01) // unimplemented SPCMD
-		bail (1645211);
-
-	pMCI_SR = pMCI_SR & ~0x01;
-	sdCommand (pMCI_CMDR & 0x3F, pMCI_ARGR);
-}
-
-function _pMCIRespond (v0, v1, v2, v3)
+function _pMCICommandCallback (v0, v1, v2, v3)
 {
 	PARAM_INT (v0);
 	PARAM_INT (v1);
@@ -492,12 +482,6 @@ function _pMCIRespond (v0, v1, v2, v3)
 
 	pMCI_RSPR_offset = 0;
 	pMCI_SR = pMCI_SR | 0x01;
-}
-*/
-
-function _pMCICommandCallback ()
-{
-	bail (190813);
 }
 
 function _pMCIReadCallback ()
