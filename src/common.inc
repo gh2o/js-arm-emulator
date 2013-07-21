@@ -1,7 +1,7 @@
 // vim:ft=c
 #pragma once
 
-#define DEFAULT_OPTION(x,y) ((x === undefined) && (x = (y)))
+#define DEFAULT_OPTION(x,y) ((x === undefined || x === null) && (x = (y)))
 
 #define CONCAT_TOKENS_(x,y) x##y
 #define CONCAT_TOKENS(x,y) CONCAT_TOKENS_(x,y)

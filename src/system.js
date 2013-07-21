@@ -1,7 +1,7 @@
 #include "common.inc"
 #include "system.inc"
 
-function System (options)
+function System (options, sdbackend)
 {
 	/*****************************************
 	 * DEFAULT OPTIONS                       *
@@ -28,7 +28,7 @@ function System (options)
 	 *****************************************/
 
 	this.heap = new ArrayBuffer (heapSize);
-	this.sd = new SD ();
+	this.sd = new SD (this, sdbackend);
 
 	/*****************************************
 	 * BRING IN THE CORE                     *
@@ -59,6 +59,21 @@ System.prototype.needSwap = (function () {
 	return 0xCAFEBABE === new Uint32Array (arr.buffer)[0];
 })();
 
+System.prototype.swapIfNeeded = function (x) {
+	if (this.needSwap)
+	{
+		return
+			((x & 0xFF000000) >>> 24) |
+			((x & 0x00FF0000) >>> 8) |
+			((x & 0x0000FF00) << 8) |
+			((x & 0x000000FF) << 24);
+	}
+	else
+	{
+		return x;
+	}
+};
+
 System.prototype.loadImage = function (image, address) {
 
 	// pad if not word-aligned
@@ -69,6 +84,14 @@ System.prototype.loadImage = function (image, address) {
 		image = next;
 	}
 
+	// copy to heap buffer
+	var heapOffset = address - this.options.memoryOffset + MEMORY_START;
+	var source = new Int32Array (image);
+	var target = new Int32Array (this.heap, heapOffset, source.length);
+	for (var i = 0; i < source.length; i++)
+		target[i] = this.swapIfNeeded (source[i]);
+
+	/*
 	// create source buffer
 	var source = new Int32Array (image.slice (0));
 
@@ -79,10 +102,6 @@ System.prototype.loadImage = function (image, address) {
 		{
 			var x = source[i];
 			source[i] =
-				((x & 0xFF000000) >>> 24) |
-				((x & 0x00FF0000) >>> 8) |
-				((x & 0x0000FF00) << 8) |
-				((x & 0x000000FF) << 24);
 		}
 	}
 
@@ -90,6 +109,7 @@ System.prototype.loadImage = function (image, address) {
 	var heapOffset = address - this.options.memoryOffset + MEMORY_START;
 	var target = new Int32Array (this.heap, heapOffset, source.length);
 	target.set (source);
+	*/
 };
 
 System.prototype.onConsoleByte = function () {

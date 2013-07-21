@@ -12,10 +12,38 @@ for (var name in neededFiles)
 	obj.buffer = new Uint8Array (fs.readFileSync (obj.path)).buffer;
 }
 
+// SD backend
+function SDBackend ()
+{
+	this.fd = fs.openSync ("resources/card/image", "r");
+}
+
+SDBackend.prototype.close = function ()
+{
+	fs.closeSync (this.fd);
+};
+
+SDBackend.prototype.read = function (obj)
+{
+	var buf = new Buffer (obj.size);
+	fs.read (this.fd, buf, 0, obj.size, obj.offset, function (err, cnt) {
+		if (err)
+			throw err;
+		if (cnt != obj.size)
+			throw new Error ("read bad size!");
+		obj.callback (new Uint8Array (buf).buffer);
+	});
+};
+
+SDBackend.prototype.write = function (func)
+{
+	throw new Error ("write not implemented");
+};
+
 var system;
 
 // copy kernel into memory
-system = new System ();
+system = new System (null, new SDBackend ());
 system.loadImage (neededFiles.kernel.buffer, 0x20008000);
 system.loadImage (neededFiles.devicetree.buffer, 0x21000000);
 
@@ -32,5 +60,6 @@ system.setPC (0x20008000);
 system.setRegister (REG_R1, ~0);
 system.setRegister (REG_R2, 0x21000000);
 
-while (1)
-	system.run (1000);
+setInterval (function () {
+	system.run (200000);
+}, 0);

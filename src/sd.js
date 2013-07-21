@@ -16,8 +16,12 @@
 #define NRM_CMD(x) (x)
 #define APP_CMD(x) (x + 0x40)
 
-function SD ()
+function SD (system, backend)
 {
+	this.system = system;
+	this.backend = backend;
+	this.backendPending = {};
+
 	this.status = SD_STATUS_CURRENT_STATE_idle;
 	this.dataCmd = 0;
 	this.dataArg = 0;
@@ -108,27 +112,45 @@ SD.prototype.doCommand = function (cmd, arg)
 
 SD.prototype.doRead = function (sz)
 {
-	if (this.dataArray)
+	var sd = this;
+
+	if (sd.dataArray)
 	{
-		while ((this.dataOffset >> 2) < this.dataArray.length && sz > 0)
+		while ((sd.dataOffset >> 2) < sd.dataArray.length && sz > 0)
 		{
-			this.doReadCallback (this.dataArray[this.dataOffset >> 2]);
-			this.dataOffset += 4;
+			sd.doReadCallback (sd.dataArray[sd.dataOffset >> 2]);
+			sd.dataOffset += 4;
 			sz -= 4;
 		}
 
-		if ((this.dataOffset >> 2) == this.dataArray.length)
-			this.setMode (SD_STATUS_CURRENT_STATE_tran);
+		if ((sd.dataOffset >> 2) == sd.dataArray.length)
+			sd.setMode (SD_STATUS_CURRENT_STATE_tran);
 	}
 	else
 	{
-		switch (this.dataCmd)
+		switch (sd.dataCmd)
 		{
 			case NRM_CMD (18):
-				while (sz > 0)
+				var sd = sd;
+				var obj = sd.backendPending;
+				var offset = sd.dataArg + sd.dataOffset;
+				var size = sz;
+				if (!(obj.offset === offset && obj.size === size))
 				{
-					this.doReadCallback (0);
-					sz -= 4;
+					obj.aborted = true;
+					sd.backend.read (obj = sd.backendPending = {
+						aborted: false,
+						offset: offset,
+						size: size,
+						callback: function (buf) {
+							if (obj.aborted)
+								return;
+							var arr = new Int32Array (buf);
+							for (var i = 0; i < obj.size; i += 4)
+								sd.doReadCallback (sd.system.swapIfNeeded (arr[i >> 2]));
+							sd.dataOffset += obj.size;
+						}
+					});
 				}
 				break;
 			default:
