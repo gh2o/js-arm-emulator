@@ -458,6 +458,31 @@ function _pSTWrite (offset, value)
 	bail (8823126);
 }
 
+function _pMCICommand (cmdr)
+{
+	PARAM_INT (cmdr);
+
+	var spcmd = 0;
+
+	spcmd = (cmdr >> 8) & 0x07;
+	switch (S32 (spcmd))
+	{
+		case 0:
+			break;
+		case 1:
+			sdReset ();
+			return;
+		default:
+			bail (1645211);
+			return;
+	}
+
+	if (cmdr & 0xFFFF0000)
+		bail (15443179);
+
+	sdCommand (cmdr & 0x3F, pMCI_ARGR);
+}
+
 function _pMCIRead (offset)
 {
 	PARAM_INT (offset);
@@ -475,7 +500,7 @@ function _pMCIRead (offset)
 			return INT (pMCI_IMR);
 		case 0xFC: // version???
 			memoryError = STAT_OK;
-			return 0x0;
+			return 0x100;
 	}
 
 	log (LOG_ID, 4543944, LOG_HEX, S32 (offset));
@@ -501,17 +526,22 @@ function _pMCIWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x10: // MCI_ARGR
+			console.log (">>> MCI_ARGR = " + formatHex (value));
 			memoryError = STAT_OK;
 			return;
 		case 0x14: // MCI_CMDR
+			console.log (">>> MCI_CMDR = " + formatHex (value));
+			_pMCICommand (value);
 			memoryError = STAT_OK;
 			return;
 		case 0x44: // MCI_IER
 			if (value & ~1)
 				bail (8179874);
+			pMCI_IMR = pMCI_IMR | value;
 			memoryError = STAT_OK;
 			return;
 		case 0x48: // MCI_IDR
+			pMCI_IMR = pMCI_IMR & ~value;
 			memoryError = STAT_OK;
 			return;
 	}
