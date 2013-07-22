@@ -21,10 +21,6 @@
 		reg = <0x20000000 0x03F00000>;
 	};
 
-	pin-controller {
-
-	};
-
 	system-peripherals {
 
 		compatible = "simple-bus";
@@ -39,7 +35,7 @@
 			reg = <0xfffff000 0x200>;
 		};
 
-		ramc0: ramc@ffffff00 {
+		ramc: ramc@ffffff00 {
 			compatible = "atmel,at91rm9200-sdramc";
 			reg = <0xffffff00 0x100>;
 		};
@@ -70,7 +66,7 @@
 		#size-cells = <1>;
 		ranges;
 
-		mmc0: mmc@fffb4000 {
+		mmc: mmc@fffb4000 {
 			compatible = "atmel,hsmci";
 			reg = <0xfffb4000 0x4000>;
 			interrupts = <10 4 0>;
