@@ -231,7 +231,10 @@ function Core (stdlib, foreign, heap)
 			pc = getPC ();
 			inst = readWord (pc, MMU_TRANSLATE_EXECUTE);
 			if (memoryError)
+			{
 				triggerException (MODE_abt, 0x0C);
+				continue;
+			}
 
 			// advance program counter before execution
 			setPC (INT (pc + 4));
