@@ -637,9 +637,9 @@ var DECODER_TABLE = [
 #undef ROW_6_7_LDR_STR
 
 	/* 0x80 */ FILL16(LDM_STM),
-	/* 0x81 */ FILL16(UND),
-	/* 0x82 */ FILL16(UND),
-	/* 0x83 */ FILL16(UND),
+	/* 0x81 */ FILL16(LDM_STM),
+	/* 0x82 */ FILL16(LDM_STM),
+	/* 0x83 */ FILL16(LDM_STM),
 	/* 0x84 */ FILL16(UND),
 	/* 0x85 */ FILL16(UND),
 	/* 0x86 */ FILL16(UND),
@@ -663,8 +663,8 @@ var DECODER_TABLE = [
 	/* 0x97 */ FILL16(UND),
 	/* 0x98 */ FILL16(LDM_STM),
 	/* 0x99 */ FILL16(LDM_STM),
-	/* 0x9A */ FILL16(UND),
-	/* 0x9B */ FILL16(UND),
+	/* 0x9A */ FILL16(LDM_STM),
+	/* 0x9B */ FILL16(LDM_STM),
 	/* 0x9C */ FILL16(UND),
 	/* 0x9D */ FILL16(UND),
 	/* 0x9E */ FILL16(UND),
