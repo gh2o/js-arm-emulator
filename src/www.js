@@ -56,7 +56,7 @@ function bootstrap ()
 	system = new System ();
 	system.loadImage (neededFiles.kernel.xhr.response, 0x20008000);
 	system.loadImage (neededFiles.devicetree.xhr.response, 0x21000000);
-	system.onConsoleByte = function (b) {
+	system.onData = function (b) {
 		var op = document.getElementById ("output");
 		op.appendChild (document.createTextNode (String.fromCharCode (b)));
 	};

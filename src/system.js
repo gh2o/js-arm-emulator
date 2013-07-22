@@ -112,6 +112,6 @@ System.prototype.loadImage = function (image, address) {
 	*/
 };
 
-System.prototype.onConsoleByte = function () {
-	throw new Error ("override onConsoleByte!");
+System.prototype.onData = function () {
+	throw new Error ("override onData!");
 };

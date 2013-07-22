@@ -49,7 +49,7 @@ system.loadImage (neededFiles.devicetree.buffer, 0x21000000);
 
 // output routine
 var writeBuffer = new Buffer (1);
-system.onConsoleByte = function (b) {
+system.onData = function (b) {
 	writeBuffer[0] = b;
 	process.stdout.write (writeBuffer);
 };

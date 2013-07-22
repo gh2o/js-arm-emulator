@@ -51,7 +51,7 @@ System.prototype.linkCore = function () {
 			throw new Error ("Bail! (" + code + ")");
 		},
 		print: function (b) {
-			system.onConsoleByte (b & 0xFF);
+			system.onData (b & 0xFF);
 		},
 		getMilliseconds: getMilliseconds,
 		sdCommand: sd.doCommand.bind (sd),
