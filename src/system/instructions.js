@@ -849,8 +849,7 @@ function _inst_SVC (imm)
 	}
 
 	// pass to OS
-	bail (1374190);
-	return STAT_UND;
+	return STAT_SVC;
 }
 
 /****************************************

@@ -194,9 +194,8 @@ function Core (stdlib, foreign, heap)
 		switch (S32 (mode))
 		{
 			case MODE_irq:
-				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
-				break;
 			case MODE_abt:
+			case MODE_svc:
 				cpsr = cpsr & ~(PSR_M | PSR_T) | (mode | PSR_I);
 				break;
 			default:
@@ -247,6 +246,10 @@ function Core (stdlib, foreign, heap)
 					break;
 				case STAT_ABT: // data abort
 					triggerException (MODE_abt, 0x10);
+					break;
+				case STAT_SVC: // supervisor mode
+					setPC (pc);
+					triggerException (MODE_svc, 0x08);
 					break;
 				default:
 					bail (13515); // some stupid error occurred

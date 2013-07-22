@@ -40,7 +40,7 @@
 #define STAT_OK (0)
 #define STAT_ABT (1)
 #define STAT_UND (2)
-#define STAT_SWI (3)
+#define STAT_SVC (3)
 
 /****************************************
  
