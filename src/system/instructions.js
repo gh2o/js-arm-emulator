@@ -606,10 +606,10 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 			value = getRegister (Rd);
 			writeByte (address, value & 0xFF, 0);
 			if (memoryError)
-				bail (2384092);
+				return STAT_ABT;
 			writeByte (INT (address + 1), value >> 8 & 0xFF, 0);
 			if (memoryError)
-				bail (2384093);
+				return STAT_ABT;
 			break;
 
 		case 5: // LDRH
@@ -618,10 +618,10 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 				bail (392850); // unaligned access
 			value = readByte (address, 0);
 			if (memoryError)
-				bail (3465131);
+				return STAT_ABT;
 			value = value | (readByte (INT (address + 1), 0) << 8);
 			if (memoryError)
-				bail (3465132);
+				return STAT_ABT;
 			if (LSH & 0x2)
 				setRegister (Rd, (value << 16) >> 16);
 			else
@@ -631,7 +631,7 @@ function _inst_LDR_STR_misc (LSH, Rd, Rn, offset_immreg, P, U, W)
 		case 6: // LDRSB
 			value = readByte (address, 0);
 			if (memoryError)
-				bail (9082095);
+				return STAT_ABT;
 			setRegister (Rd, (value << 24) >> 24);
 			break;
 
