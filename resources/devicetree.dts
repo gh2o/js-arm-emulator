@@ -21,6 +21,19 @@
 		reg = <0x20000000 0x03F00000>;
 	};
 
+	pin-controller {
+
+		compatible = "pinctrl-single";
+		reg = <0xfff80000 0x10>;
+		pinctrl-single,register-width = <32>;
+		pinctrl-single,function-mask = <0x01>;
+
+		dbgu_pins: dbgu-pins {
+			pinctrl-single,pins = <0x0 0x01>;
+		};
+
+	};
+
 	system-peripherals {
 
 		compatible = "simple-bus";
@@ -55,6 +68,8 @@
 			compatible = "atmel,at91rm9200-usart";
 			reg = <0xfffff200 0x200>;
 			interrupts = <1 4 7>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&dbgu_pins>;
 		};
 
 	};
