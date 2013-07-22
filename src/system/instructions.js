@@ -226,6 +226,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 				case 12:
 				case 13:
 				case 14:
+				case 15:
 					cpsr = 
 						(cpsr & 0x1FFFFFFF) |
 						(result & (1 << 31)) |
@@ -243,6 +244,7 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 						(((base ^ operand) & (base ^ result)) >> 3) & (1 << 28);
 					break;
 				case 3:
+				case 7:
 					cpsr =
 						(cpsr & 0x0FFFFFFF) |
 						(result & (1 << 31)) |
