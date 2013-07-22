@@ -92,6 +92,6 @@ System.prototype.loadImage = function (image, address) {
 		target[i] = this.swapIfNeeded (source[i]);
 };
 
-System.prototype.onData = function () {
-	throw new Error ("override onData!");
+System.prototype.onOutput = function () {
+	throw new Error ("override onOutput!");
 };
