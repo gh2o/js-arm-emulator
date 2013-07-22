@@ -296,6 +296,9 @@ function _pDBGURead (offset)
 
 	switch (S32 (offset))
 	{
+		case 0x14:
+			memoryError = STAT_OK;
+			return 0x0202; // TXREADY and TXEMPTY
 		case 0x40:
 			memoryError = STAT_OK;
 			return 0x09290781;
@@ -304,8 +307,28 @@ function _pDBGURead (offset)
 			return 0;
 	}
 
+	log (LOG_ID, 19083921, LOG_HEX, offset);
 	bail (19083921);
 	return 0;
+}
+
+function _pDBGUWrite (offset, value)
+{
+	PARAM_INT (offset);
+	PARAM_INT (value);
+	
+	switch (S32 (offset))
+	{
+		case 0x1C:
+			print (value & 0xFF);
+			memoryError = STAT_OK;
+			return;
+	}
+
+
+	log (LOG_ID, 39083927, LOG_HEX, offset, LOG_HEX, value);
+	bail (39083927);
+
 }
 
 function _pPMCRead (offset)
@@ -729,8 +752,8 @@ var userPeripheralRead = [
 var systemPeripheralWrite = [
 	/*  0 */ _pAICWrite,
 	/*  1 */ _pAICWrite,
-	/*  2 */ und,
-	/*  3 */ und,
+	/*  2 */ _pDBGUWrite,
+	/*  3 */ _pDBGUWrite,
 	/*  4 */ und,
 	/*  5 */ und,
 	/*  6 */ und,
