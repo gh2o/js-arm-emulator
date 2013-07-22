@@ -515,7 +515,7 @@ var DECODER_TABLE = [
 		und, und, und, und,
 		und, und, und, SUBDECODER_FUNCTION(LDR_STR_misc_imm),
 		und, und, und, und,
-	/* 0x17 */ ROW_0_1(UND,UND,UND,UND),
+	/* 0x17 */ ROW_0_1(UND,LDR_STR_misc_imm,LDR_STR_misc_imm,LDR_STR_misc_imm),
 	/* 0x18 */ ROW_0_1(UND,LDR_STR_misc_reg,LDR_STR_misc_reg,LDR_STR_misc_reg),
 	/* 0x19 */ ROW_0_1(UND,LDR_STR_misc_reg,LDR_STR_misc_reg,LDR_STR_misc_reg),
 	/* 0x1A */ ROW_0_1(UND,LDR_STR_misc_reg,LDR_STR_misc_reg,LDR_STR_misc_reg),
