@@ -242,7 +242,12 @@ function _translateAddress (vaddr, trflags)
 					break;
 			}
 			if (!permitted)
-				bail (1231809); // permission denied
+			{
+				memoryError = STAT_ABT;
+				cp15_FSR = (dtype == 2 ? 0xD : 0xF) | (domain << 4);
+				cp15_FAR = vaddr;
+				return 0;
+			}
 			break;
 		case 2: // unpredictable
 			bail (432159);
