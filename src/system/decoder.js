@@ -657,7 +657,7 @@ var DECODER_TABLE = [
 	/* 0x91 */ FILL16(LDM_STM),
 	/* 0x92 */ FILL16(LDM_STM),
 	/* 0x93 */ FILL16(LDM_STM),
-	/* 0x94 */ FILL16(UND),
+	/* 0x94 */ FILL16(LDM_STM_privileged),
 	/* 0x95 */ FILL16(LDM_STM_privileged),
 	/* 0x96 */ FILL16(UND),
 	/* 0x97 */ FILL16(UND),
