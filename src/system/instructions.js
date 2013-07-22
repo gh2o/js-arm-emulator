@@ -747,7 +747,6 @@ function _inst_LDM_STM (L, Rn, register_list, addressing_mode, W, S, US)
 		// restore to comply with abort model
 		setRegister (Rn, origBase);
 		setPC (origPC);
-		bail (12982);
 		return STAT_ABT;
 	}
 
