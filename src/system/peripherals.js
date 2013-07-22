@@ -17,6 +17,11 @@ var pAIC_IPR = 0;
 var pAIC_stacksize = 0;
 var pAIC_priomask = 0;
 
+var pDBGU_MR = 0;
+var pDBGU_IMR = 0;
+var pDBGU_BRGR = 0;
+var pDBGU_PTSR = 0;
+
 var pST_IMR = 0;
 var pST_PIMR = 0;
 var pST_PIMR_period = 2000.0; // 65536 / 32.768
@@ -296,15 +301,27 @@ function _pDBGURead (offset)
 
 	switch (S32 (offset))
 	{
-		case 0x14:
+		case 0x04: // DBGU_MR
+			memoryError = STAT_OK;
+			return INT (pDBGU_MR);
+		case 0x10: // DBGU_IMR
+			memoryError = STAT_OK;
+			return INT (pDBGU_IMR);
+		case 0x14: // DBGU_SR
 			memoryError = STAT_OK;
 			return 0x0202; // TXREADY and TXEMPTY
-		case 0x40:
+		case 0x20: // DBGU_BRGR
+			memoryError = STAT_OK;
+			return INT (pDBGU_BRGR);
+		case 0x40: // DBGU_CIDR
 			memoryError = STAT_OK;
 			return 0x09290781;
-		case 0x44:
+		case 0x44: // DBGU_EXID
 			memoryError = STAT_OK;
 			return 0;
+		case 0x124: // DBGU_PTSR
+			memoryError = STAT_OK;
+			return INT (pDBGU_PTSR);
 	}
 
 	log (LOG_ID, 19083921, LOG_HEX, offset);
@@ -319,8 +336,31 @@ function _pDBGUWrite (offset, value)
 	
 	switch (S32 (offset))
 	{
-		case 0x1C:
+		case 0x00: // DBGU_CR
+			memoryError = STAT_OK;
+			return;
+		case 0x04: // DBGU_MR
+			pDBGU_MR = value;
+			memoryError = STAT_OK;
+			return;
+		case 0x08: // DBGU_IER
+			pDBGU_IMR = pDBGU_IMR | value;
+			memoryError = STAT_OK;
+			return;
+		case 0x0C: // DBGU_IDR
+			pDBGU_IMR = pDBGU_IMR & ~value;
+			memoryError = STAT_OK;
+			return;
+		case 0x1C: // DBGU_THR
 			print (value & 0xFF);
+			memoryError = STAT_OK;
+			return;
+		case 0x20: // DBGU_BRGR
+			pDBGU_BRGR = value;
+			memoryError = STAT_OK;
+			return;
+		case 0x120: // DBGU_PTCR
+			pDBGU_PTSR = value & ~(value >> 1) & 0x0101;
 			memoryError = STAT_OK;
 			return;
 	}
