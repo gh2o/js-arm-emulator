@@ -96,6 +96,20 @@ function _undefinedPeripheralWrite (offset, value)
 	bail (2130668);
 }
 
+function _pDMRead (offset)
+{
+	PARAM_INT (offset);
+	memoryError = STAT_OK;
+	return 0;
+}
+
+function _pDMWrite (offset, value)
+{
+	PARAM_INT (offset);
+	PARAM_INT (value);
+	memoryError = STAT_OK;
+}
+
 function _pAICStackPush (irq, prio)
 {
 	PARAM_INT (irq);
@@ -676,7 +690,7 @@ var systemPeripheralRead = [
 	/* 15 */ und
 ];
 var userPeripheralRead = [
-	/*  0 */ und,
+	/*  0 */ _pDMRead,
 	/*  1 */ und,
 	/*  2 */ und,
 	/*  3 */ und,
@@ -731,7 +745,7 @@ var systemPeripheralWrite = [
 	/* 15 */ und
 ];
 var userPeripheralWrite = [
-	/*  0 */ und,
+	/*  0 */ _pDMWrite,
 	/*  1 */ und,
 	/*  2 */ und,
 	/*  3 */ und,
