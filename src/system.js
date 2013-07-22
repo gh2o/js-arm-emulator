@@ -90,26 +90,6 @@ System.prototype.loadImage = function (image, address) {
 	var target = new Int32Array (this.heap, heapOffset, source.length);
 	for (var i = 0; i < source.length; i++)
 		target[i] = this.swapIfNeeded (source[i]);
-
-	/*
-	// create source buffer
-	var source = new Int32Array (image.slice (0));
-
-	// swap bytes if needed
-	if (this.needSwap)
-	{
-		for (var i = 0; i < source.length; i++)
-		{
-			var x = source[i];
-			source[i] =
-		}
-	}
-
-	// copy to heap buffer
-	var heapOffset = address - this.options.memoryOffset + MEMORY_START;
-	var target = new Int32Array (this.heap, heapOffset, source.length);
-	target.set (source);
-	*/
 };
 
 System.prototype.onData = function () {
