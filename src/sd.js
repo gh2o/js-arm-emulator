@@ -156,9 +156,9 @@ SD.prototype.doRead = function (sz)
 							if (obj.aborted)
 								return;
 							var arr = new Int32Array (buf);
-							for (var i = 0; i < obj.size; i += 4)
-								sd.doReadCallback (sd.system.swapIfNeeded (arr[i >> 2]));
-							sd.dataOffset += obj.size;
+							for (var i = 0; i < arr.length; i++)
+								sd.doReadCallback (sd.system.swapIfNeeded (arr[i]));
+							sd.dataOffset += arr.length << 2;
 						}
 					});
 				}
@@ -200,10 +200,11 @@ SD.prototype.doWrite = function (heapoffset, sz)
 						offset: offset,
 						size: size,
 						buffer: outbuf.buffer,
-						callback: function () {
+						callback: function (sz) {
 							if (obj.aborted)
 								return;
-							throw "qiuoerjio";
+							sd.doWriteCallback (sz);
+							sd.dataOffset += sz;
 						}
 					});
 				}
