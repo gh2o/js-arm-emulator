@@ -297,6 +297,16 @@ function _pAICWrite (offset, value)
 	bail (3451122);
 }
 
+function _pDBGUGetSR (update)
+{
+	PARAM_INT (update);
+
+	var ret = 0x0202; // TXRDY and TXEMPTY
+	ret = ret | (pDBGU_inputStart != pDBGU_inputEnd); // RXRDY
+
+	return INT (ret);
+}
+
 function _pDBGUInput (c)
 {
 	PARAM_INT (c);
@@ -317,6 +327,8 @@ function _pDBGURead (offset)
 {
 	PARAM_INT (offset);
 
+	var tmp = 0;
+
 	switch (S32 (offset))
 	{
 		case 0x04: // DBGU_MR
@@ -327,7 +339,20 @@ function _pDBGURead (offset)
 			return INT (pDBGU_IMR);
 		case 0x14: // DBGU_SR
 			memoryError = STAT_OK;
-			return 0x0202; // TXREADY and TXEMPTY
+			return INT (_pDBGUGetSR (1));
+		case 0x18: // DBGU_RHR
+			memoryError = STAT_OK;
+			if (S32 (pDBGU_inputEnd - pDBGU_inputStart) > 0)
+			{
+				tmp = INT (byteView[ADDR_DBGU_INPUT_BUFFER + (pDBGU_inputStart & MASK_DBGU_INPUT_BUFFER)]);
+				pDBGU_inputStart = INT (pDBGU_inputStart + 1);
+				return INT (tmp);
+			}
+			else
+			{
+				// empty buffer
+				return 0x0;
+			}
 		case 0x20: // DBGU_BRGR
 			memoryError = STAT_OK;
 			return INT (pDBGU_BRGR);

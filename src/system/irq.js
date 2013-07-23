@@ -36,6 +36,9 @@ function _irqPoll ()
 
 	// ST interrupts
 	IRQ (1, pST_IMR, INT (_pSTGetSR (0)));
+
+	// DBGU interrupts
+	IRQ (1, pDBGU_IMR, INT (_pDBGUGetSR (0)));
 	
 	// MCI interrupts
 	IRQ (10, pMCI_IMR, INT (_pMCIGetSR (0)));
@@ -47,4 +50,6 @@ function _irqPoll ()
 		bail (5312453);
 	if (pMCI_IMR & ~0xc0604061)
 		bail (5343251);
+	if (pDBGU_IMR & ~0x00000003)
+		bail (1893789);
 }
