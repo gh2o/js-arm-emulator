@@ -621,9 +621,11 @@ function _pMCIReadCallback (word)
 	pMCI_RCR = INT (pMCI_RCR - 1);
 }
 
-function _pMCIWriteCallback ()
+function _pMCIWriteCallback (sz)
 {
-	bail (390815);
+	PARAM_INT (sz);
+	pMCI_TPR = INT (pMCI_TPR + sz);
+	pMCI_TCR = INT (pMCI_TCR - (sz >>> 2));
 }
 
 function _pMCIRunDMA ()
