@@ -95,3 +95,7 @@ System.prototype.loadImage = function (image, address) {
 System.prototype.onOutput = function () {
 	throw new Error ("override onOutput!");
 };
+
+System.prototype.writeInput = function (c) {
+	this.core.onInput (c);
+};

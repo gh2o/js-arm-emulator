@@ -21,6 +21,8 @@ var pDBGU_MR = 0;
 var pDBGU_IMR = 0;
 var pDBGU_BRGR = 0;
 var pDBGU_PTSR = 0;
+var pDBGU_inputStart = 0;
+var pDBGU_inputEnd = 0;
 
 var pST_IMR = 0;
 var pST_PIMR = 0;
@@ -293,6 +295,22 @@ function _pAICWrite (offset, value)
 
 	log (LOG_ID, 3451122, LOG_HEX, S32 (offset));
 	bail (3451122);
+}
+
+function _pDBGUInput (c)
+{
+	PARAM_INT (c);
+
+	if (INT (pDBGU_inputEnd - pDBGU_inputStart + 1) < SIZE_DBGU_INPUT_BUFFER)
+	{
+		byteView[ADDR_DBGU_INPUT_BUFFER + (pDBGU_inputEnd & MASK_DBGU_INPUT_BUFFER)] = c;
+		pDBGU_inputEnd = INT (pDBGU_inputEnd + 1);
+	}
+	else
+	{
+		// overflow
+		bail (18903590);
+	}
 }
 
 function _pDBGURead (offset)

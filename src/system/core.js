@@ -336,6 +336,8 @@ function Core (stdlib, foreign, heap)
 		// SD
 		sdCommandCallback: _pMCICommandCallback,
 		sdReadCallback: _pMCIReadCallback,
-		sdWriteCallback: _pMCIWriteCallback
+		sdWriteCallback: _pMCIWriteCallback,
+		// DBGU
+		onInput: _pDBGUInput,
 	};
 }

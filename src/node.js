@@ -47,6 +47,14 @@ system = new System (null, new SDBackend ());
 system.loadImage (neededFiles.kernel.buffer, 0x20008000);
 system.loadImage (neededFiles.devicetree.buffer, 0x21000000);
 
+// input routine
+process.stdin.setRawMode (true);
+process.stdin.resume ();
+process.stdin.on ('data', function (buf) {
+	for (var i = 0; i < buf.length; i++)
+		system.writeInput (buf[i]);
+});
+
 // output routine
 var writeBuffer = new Buffer (1);
 system.onOutput = function (b) {

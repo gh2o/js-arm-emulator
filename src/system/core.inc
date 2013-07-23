@@ -71,6 +71,10 @@
      AIC: 0x0100 - 0x0240
      MCI: 0x0280 - 0x0290
 
+   Buffers:
+
+     DBGU: 0x1000 - 0x2000
+
  ****************************************/
 
 #define ADDR_CPSR (0x0040)
@@ -89,3 +93,7 @@
 #define ADDR_AIC_PRIO_STACK (0x0220)
 
 #define ADDR_MCI_RESPONSE_ARRAY (0x0280)
+
+#define ADDR_DBGU_INPUT_BUFFER (0x1000)
+#define SIZE_DBGU_INPUT_BUFFER (0x1000)
+#define MASK_DBGU_INPUT_BUFFER (0x0FFF)
