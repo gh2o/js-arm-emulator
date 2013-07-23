@@ -194,7 +194,7 @@ SD.prototype.doWrite = function (heapoffset, sz)
 						aborted: false,
 						offset: offset,
 						size: size,
-						buffer: sd.system.heap.slice (heapoffset, size),
+						buffer: sd.system.heap.slice (heapoffset, heapoffset + size),
 						callback: function () {
 							if (obj.aborted)
 								return;
