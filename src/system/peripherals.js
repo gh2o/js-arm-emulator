@@ -48,6 +48,10 @@ var pMCI_RPR = 0;
 var pMCI_RNPR = 0;
 var pMCI_RCR = 0;
 var pMCI_RNCR = 0;
+var pMCI_TPR = 0;
+var pMCI_TNPR = 0;
+var pMCI_TCR = 0;
+var pMCI_TNCR = 0;
 var pMCI_PTSR = 0;
 #endif
 
@@ -648,9 +652,11 @@ function _pMCIGetSR (update)
 
 	_pMCIRunDMA ();
 	pMCI_SR = pMCI_SR | !pMCI_RCR << 6;
+	pMCI_SR = pMCI_SR | !pMCI_TCR << 7;
 
 	ret = INT (pMCI_SR);
 	ret = ret | !(pMCI_RCR | pMCI_RNCR) << 14; // RXBUFF
+	ret = ret | !(pMCI_TCR | pMCI_TNCR) << 15; // TXBUFE
 	ret = ret | (pMCI_CMDR_transfer == MCI_CMDR_TRANSFER_OFF) << 5; // NOTBUSY
 
 	return INT (ret);
@@ -761,6 +767,15 @@ function _pMCIWrite (offset, value)
 		case 0x104: // MCI_RCR
 			pMCI_RCR = value;
 			pMCI_SR = pMCI_SR & ~(1 << 6);
+			memoryError = STAT_OK;
+			return;
+		case 0x108: // MCI_TPR
+			pMCI_TPR = value;
+			memoryError = STAT_OK;
+			return;
+		case 0x10C: // MCI_TCR
+			pMCI_TCR = value;
+			pMCI_SR = pMCI_SR & ~(1 << 7);
 			memoryError = STAT_OK;
 			return;
 		case 0x120: // MCI_PTCR
