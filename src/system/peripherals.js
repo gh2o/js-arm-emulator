@@ -640,7 +640,9 @@ function _pMCIRunDMA ()
 				sdRead (pMCI_RCR << 2);
 			break;
 		case MCI_CMDR_TRANSFER_TX:
-			bail (17464);
+			if (!!(pMCI_PTSR & 0x0100) & !!pMCI_TCR)
+				sdWrite (memoryAddressToHeapOffset (pMCI_TPR), pMCI_TCR << 2);
+			break;
 	}
 }
 

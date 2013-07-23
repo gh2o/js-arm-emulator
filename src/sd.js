@@ -9,6 +9,7 @@
 #define SD_STATUS_CURRENT_STATE_stby  (3  << 9)
 #define SD_STATUS_CURRENT_STATE_tran  (4  << 9)
 #define SD_STATUS_CURRENT_STATE_data  (5  << 9)
+#define SD_STATUS_CURRENT_STATE_rcv   (6  << 9)
 
 #define SD_STATUS_ILLEGAL_COMMAND (1 << 22)
 #define SD_STATUS_APP_CMD         (1 <<  5)
@@ -85,6 +86,11 @@ SD.prototype.doCommand = function (cmd, arg)
 			this.doCommandCallback (this.status);
 			this.setMode (SD_STATUS_CURRENT_STATE_data);
 			return;
+		case NRM_CMD (25):
+			this.initData (cmd, arg);
+			this.doCommandCallback (this.status);
+			this.setMode (SD_STATUS_CURRENT_STATE_rcv);
+			return;
 		case NRM_CMD (55):
 			this.status |= SD_STATUS_APP_CMD;
 			this.doCommandCallback (this.status);
@@ -116,6 +122,7 @@ SD.prototype.doCommand = function (cmd, arg)
 SD.prototype.doRead = function (sz)
 {
 	var sd = this;
+	var cmd = sd.dataCmd;
 
 	if (sd.dataArray)
 	{
@@ -131,17 +138,17 @@ SD.prototype.doRead = function (sz)
 	}
 	else
 	{
-		switch (sd.dataCmd)
+		switch (cmd)
 		{
 			case NRM_CMD (18):
-				var sd = sd;
 				var obj = sd.backendPending;
 				var offset = sd.dataArg + sd.dataOffset;
 				var size = sz;
-				if (!(obj.offset === offset && obj.size === size))
+				if (!(obj.read && obj.offset === offset && obj.size === size))
 				{
 					obj.aborted = true;
 					sd.backend.read (obj = sd.backendPending = {
+						read: true,
 						aborted: false,
 						offset: offset,
 						size: size,
@@ -157,14 +164,49 @@ SD.prototype.doRead = function (sz)
 				}
 				break;
 			default:
-				throw new Error ("unknown data command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
+				throw new Error ("unknown read command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
 		}
 	}
 };
 
-SD.prototype.doWrite = function ()
+SD.prototype.doWrite = function (heapoffset, sz)
 {
-	throw "3";
+	var sd = this;
+	var cmd = sd.dataCmd;
+
+	if (sd.dataArray)
+	{
+		throw new Error ("dataArray not used in writes");
+	}
+	else
+	{
+		switch (cmd)
+		{
+			case NRM_CMD (25):
+				var obj = sd.backendPending;
+				var offset = sd.dataArg + sd.dataOffset;
+				var size = sz;
+				if (!(obj.write && obj.offset === offset && obj.size === size))
+				{
+					obj.aborted = true;
+					sd.backend.write (obj = sd.backendPending = {
+						write: true,
+						aborted: false,
+						offset: offset,
+						size: size,
+						buffer: sd.system.heap.slice (heapoffset, size),
+						callback: function () {
+							if (obj.aborted)
+								return;
+							throw "qiuoerjio";
+						}
+					});
+				}
+				break;
+			default:
+				throw new Error ("unknown write command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
+		}
+	}
 };
 
 SD.prototype.setMode = function (mode) {
