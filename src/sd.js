@@ -174,6 +174,11 @@ SD.prototype.doWrite = function (heapoffset, sz)
 	var sd = this;
 	var cmd = sd.dataCmd;
 
+	var inbuf = new Int32Array (sd.system.heap, heapoffset, sz >>> 2);
+	var outbuf = new Int32Array (sz >>> 2);
+	for (var i = 0; i < inbuf.length; i++)
+		outbuf[i] = sd.system.swapIfNeeded (inbuf[i]);
+
 	if (sd.dataArray)
 	{
 		throw new Error ("dataArray not used in writes");
@@ -194,7 +199,7 @@ SD.prototype.doWrite = function (heapoffset, sz)
 						aborted: false,
 						offset: offset,
 						size: size,
-						buffer: sd.system.heap.slice (heapoffset, heapoffset + size),
+						buffer: outbuf.buffer,
 						callback: function () {
 							if (obj.aborted)
 								return;
