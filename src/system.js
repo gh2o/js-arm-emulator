@@ -50,7 +50,7 @@ function System (options, sdbackend)
 	this.run = this.core.run;
 	this.sd.doCommandCallback = this.core.sdCommandCallback;
 	this.sd.doReadCallback = this.core.sdReadCallback;
-	this.sd.dWriteCallback = this.core.sdWriteCallback;
+	this.sd.doWriteCallback = this.core.sdWriteCallback;
 }
 
 System.prototype.needSwap = (function () {
