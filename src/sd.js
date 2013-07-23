@@ -71,7 +71,7 @@ SD.prototype.doCommand = function (cmd, arg)
 			this.setMode (SD_STATUS_CURRENT_STATE_idle);
 			return;
 		case NRM_CMD (9):
-			this.doCommandCallback (0x007FFF08, 0xFFF983FF, 0xC0038000, 0x02600001);
+			this.doCommandCallback (0x007FFF08, 0x5B5983FF, 0xC003BF80, 0x02400001);
 			this.setMode (SD_STATUS_CURRENT_STATE_stby);
 			return;
 		case NRM_CMD (12):
