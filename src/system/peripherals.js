@@ -1,9 +1,9 @@
 #include "peripherals.inc"
 #include "core.inc"
 
-#define MCI_CMDR_TRANSFER_OFF 0
-#define MCI_CMDR_TRANSFER_RX  1
-#define MCI_CMDR_TRANSFER_TX  2
+#define MCI_CMDR_TRANSFER_OFF 0x00
+#define MCI_CMDR_TRANSFER_RX  0x01
+#define MCI_CMDR_TRANSFER_TX  0x02
 
 /************************************************************
  User peripherals   : 1111 1111 1111 1xxx xx00 0000 0000 0000
