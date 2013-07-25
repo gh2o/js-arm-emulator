@@ -108,7 +108,9 @@ SD.prototype.doCommand = function (cmd, arg)
 			this.doCommandCallback (this.status | SD_STATUS_ILLEGAL_COMMAND);
 			return;
 		default:
-			throw new Error ("unknown command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
+			console.log ("=== WARNING: unknown command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
+			this.doCommandCallback (this.status | SD_STATUS_ILLEGAL_COMMAND);
+			return;
 	}
 
 };
@@ -150,7 +152,7 @@ SD.prototype.doRead = function (heapo, size) {
 		sd.backend.read (bytearray, sd.dataOffset, size, function (sz) {
 			if (sd.dataTransaction != transaction)
 			{
-				console.log ('=== READ ABORTED');
+				console.log ('=== WARNING: read aborted');
 				sz = 0;
 			}
 			for (var i = 0; i < (sz >>> 2); i++)
@@ -185,7 +187,7 @@ SD.prototype.doWrite = function (heapo, size) {
 		sd.backend.write (bytearray, sd.dataOffset, size, function (sz) {
 			if (sd.dataTransaction != transaction)
 			{
-				console.log ('=== WRITE ABORTED');
+				console.log ('=== WARNING: write aborted');
 				sz = 0;
 			}
 			sd.dataOffset += sz;
