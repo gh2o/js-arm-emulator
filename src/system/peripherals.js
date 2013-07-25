@@ -1,14 +1,25 @@
 #include "peripherals.inc"
 #include "core.inc"
 
-#define MCI_CMDR_TRANSFER_OFF 0x00
-#define MCI_CMDR_TRANSFER_RX  0x01
-#define MCI_CMDR_TRANSFER_TX  0x02
-
 /************************************************************
  User peripherals   : 1111 1111 1111 1xxx xx00 0000 0000 0000
  System peripherals : 1111 1111 1111 1111 1111 xxxx 0000 0000
  ************************************************************/
+
+#define MCI_MR_BLKLEN(x) ((x) >> 16 & 0x3FFC)
+
+#define MCI_CMDR_TRTYP(x) ((x) >> 19 & 0x03)
+#define MCI_CMDR_TRTYP_SINGLE_BLOCK   (0x00)
+#define MCI_CMDR_TRTYP_MULTIPLE_BLOCK (0x01)
+
+#define MCI_CMDR_TRCMD(x) ((x) >> 16 & 0x03)
+#define MCI_CMDR_TRCMD_NONE  (0x00)
+#define MCI_CMDR_TRCMD_START (0x01)
+#define MCI_CMDR_TRCMD_STOP  (0x02)
+
+#define MCI_CMDR_TRDIR_READ(x) ((x) & (1 << 18))
+
+#define MCI_CMDR_SPCMD(x) ((x) >> 8 & 0x07)
 
 #ifdef PERIPHERALS_INCLUDE_VARIABLES
 var pAIC_SPU = 0;
@@ -41,8 +52,8 @@ var pMCI_SR = 0x1;
 var pMCI_MR = 0;
 var pMCI_IMR = 0;
 var pMCI_ARGR = 0;
-var pMCI_CMDR = 0;
-var pMCI_CMDR_transfer = MCI_CMDR_TRANSFER_OFF;
+var pMCI_CMDR_transfer = 0;
+var pMCI_CMDR_pending = 0;
 var pMCI_RSPR_offset = 0;
 var pMCI_RPR = 0;
 var pMCI_RNPR = 0;
@@ -613,38 +624,81 @@ function _pMCICommandCallback (v0, v1, v2, v3)
 	pMCI_SR = pMCI_SR | 0x01;
 }
 
-function _pMCIReadCallback (word)
+function _pMCIReadCallback (sz)
 {
-	PARAM_INT (word);
-	writeWordPhysical (pMCI_RPR, word);
-	pMCI_RPR = INT (pMCI_RPR + 4);
-	pMCI_RCR = INT (pMCI_RCR - 1);
+	PARAM_INT (sz);
+	pMCI_RPR = INT (pMCI_RPR + sz);
+	pMCI_RCR = INT (pMCI_RCR - (sz >> 2));
+
+	pMCI_CMDR_pending = 0;
+	pMCI_SR |= 0x8;
+	if (MCI_CMDR_TRTYP (pMCI_CMDR_transfer) == MCI_CMDR_TRTYP_SINGLE_BLOCK)
+		pMCI_CMDR_transfer = 0;
 }
 
 function _pMCIWriteCallback (sz)
 {
 	PARAM_INT (sz);
 	pMCI_TPR = INT (pMCI_TPR + sz);
-	pMCI_TCR = INT (pMCI_TCR - (sz >>> 2));
+	pMCI_TCR = INT (pMCI_TCR - (sz >> 2));
+
+	pMCI_CMDR_pending = 0;
+	pMCI_SR |= 0x8;
+	if (MCI_CMDR_TRTYP (pMCI_CMDR_transfer) == MCI_CMDR_TRTYP_SINGLE_BLOCK)
+		pMCI_CMDR_transfer = 0;
+}
+
+function _pMCIRunCommand (cmdr)
+{
+	PARAM_INT (cmdr);
+
+	if (MCI_CMDR_SPCMD (cmdr) & ~0x01) // unsupported SPCMD
+		bail (614515);
+
+	switch (MCI_CMDR_TRCMD (cmdr))
+	{
+		case MCI_CMDR_TRCMD_START:
+			pMCI_CMDR_transfer = cmdr;
+			break;
+		case MCI_CMDR_TRCMD_STOP:
+			pMCI_CMDR_transfer = 0;
+			break;
+		default:
+			break;
+	}
+
+	sdCommand (cmdr & 0x3F, pMCI_ARGR);
 }
 
 function _pMCIRunDMA ()
 {
+	var blocklength = 0;
+	blocklength = MCI_MR_BLKLEN (pMCI_MR);
+
+	if (!pMCI_CMDR_transfer)
+		return;
+	if (pMCI_CMDR_pending)
+		return;
 	if (!(pMCI_MR & 0x8000))
 		return;
 
-	switch (pMCI_CMDR_transfer)
+	if (MCI_CMDR_TRDIR_READ (pMCI_CMDR_transfer))
 	{
-		case MCI_CMDR_TRANSFER_OFF:
-			break;
-		case MCI_CMDR_TRANSFER_RX:
-			if (!!(pMCI_PTSR & 0x0001) & !!pMCI_RCR)
-				sdRead (pMCI_RCR << 2);
-			break;
-		case MCI_CMDR_TRANSFER_TX:
-			if (!!(pMCI_PTSR & 0x0100) & !!pMCI_TCR)
-				sdWrite (memoryAddressToHeapOffset (pMCI_TPR), pMCI_TCR << 2);
-			break;
+		if (!(pMCI_PTSR & 0x0001))
+			return;
+		if (S32 (pMCI_RCR << 2) < S32 (blocklength))
+			return;
+		pMCI_CMDR_pending = 1;
+		sdRead (memoryAddressToHeapOffset (pMCI_RPR), pMCI_RCR << 2);
+	}
+	else
+	{
+		if (!(pMCI_PTSR & 0x0100))
+			return;
+		if (S32 (pMCI_TCR << 2) < S32 (blocklength))
+			return;
+		pMCI_CMDR_pending = 1;
+		sdWrite (memoryAddressToHeapOffset (pMCI_TPR), pMCI_TCR << 2);
 	}
 }
 
@@ -661,7 +715,8 @@ function _pMCIGetSR (update)
 	ret = INT (pMCI_SR);
 	ret = ret | !(pMCI_RCR | pMCI_RNCR) << 14; // RXBUFF
 	ret = ret | !(pMCI_TCR | pMCI_TNCR) << 15; // TXBUFE
-	ret = ret | (pMCI_CMDR_transfer == MCI_CMDR_TRANSFER_OFF) << 5; // NOTBUSY
+	ret = ret | !pMCI_CMDR_pending << 5; // NOTBUSY
+	pMCI_SR &= ~0x8;
 
 	return INT (ret);
 }
@@ -729,27 +784,7 @@ function _pMCIWrite (offset, value)
 			if (pMCI_SR & 0x01)
 			{
 				pMCI_SR = pMCI_SR & ~0x01;
-
-				if (value >> 8 & 0x06) // sunpported SPCMD
-					bail (614515);
-
-				pMCI_CMDR = value;
-				switch (value >> 16 & 3)
-				{
-					case 0:
-					case 3:
-						break;
-					case 1:
-						pMCI_CMDR_transfer = (value & (1 << 18)) ?
-							MCI_CMDR_TRANSFER_RX :
-							MCI_CMDR_TRANSFER_TX;
-						break;
-					case 2:
-						pMCI_CMDR_transfer = MCI_CMDR_TRANSFER_OFF;
-						break;
-				}
-
-				sdCommand (pMCI_CMDR & 0x3F, pMCI_ARGR);
+				_pMCIRunCommand (value);
 			}
 			memoryError = STAT_OK;
 			return;
@@ -783,7 +818,8 @@ function _pMCIWrite (offset, value)
 			memoryError = STAT_OK;
 			return;
 		case 0x120: // MCI_PTCR
-			pMCI_PTSR = value & ~(value >> 1) & 0x0101;
+			pMCI_PTSR = pMCI_PTSR & ~(value >> 1) | value;
+			pMCI_PTSR = pMCI_PTSR & 0x0101;
 			memoryError = STAT_OK;
 			return;
 	}

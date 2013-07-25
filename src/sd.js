@@ -12,6 +12,7 @@
 #define SD_STATUS_CURRENT_STATE_rcv   (6  << 9)
 
 #define SD_STATUS_ILLEGAL_COMMAND (1 << 22)
+#define SD_STATUS_READY_FOR_DATA  (1 <<  8)
 #define SD_STATUS_APP_CMD         (1 <<  5)
 
 #define NRM_CMD(x) (x)
@@ -21,21 +22,13 @@ function SD (system, backend)
 {
 	this.system = system;
 	this.backend = backend;
-	this.backendPending = {};
 
-	this.status = SD_STATUS_CURRENT_STATE_idle;
-	this.dataCmd = 0;
-	this.dataArg = 0;
-	this.dataArray = undefined;
-	this.dataOffset = 0;
-}
+	this.status = SD_STATUS_CURRENT_STATE_idle | SD_STATUS_READY_FOR_DATA;
 
-SD.prototype.initData = function (cmd, arg, array)
-{
-	this.dataCmd = cmd;
-	this.dataArg = arg;
-	this.dataArray = array;
+	this.dataCommand = 0;
 	this.dataOffset = 0;
+	this.dataArray = 0;
+	this.dataTransaction = 0;
 }
 
 SD.prototype.doCommand = function (cmd, arg)
@@ -75,6 +68,7 @@ SD.prototype.doCommand = function (cmd, arg)
 			this.setMode (SD_STATUS_CURRENT_STATE_stby);
 			return;
 		case NRM_CMD (12):
+			this.initData (0, 0);
 			this.doCommandCallback (this.status);
 			this.setMode (SD_STATUS_CURRENT_STATE_tran);
 			return;
@@ -96,7 +90,7 @@ SD.prototype.doCommand = function (cmd, arg)
 			this.doCommandCallback (this.status);
 			return;
 		case APP_CMD (13):
-			this.initData (cmd, arg, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+			this.initData (cmd, 0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 			this.doCommandCallback (this.status);
 			this.setMode (SD_STATUS_CURRENT_STATE_data);
 			return;
@@ -105,7 +99,7 @@ SD.prototype.doCommand = function (cmd, arg)
 			this.setMode (SD_STATUS_CURRENT_STATE_ready);
 			return;
 		case APP_CMD (51):
-			this.initData (cmd, arg, [0, 0]);
+			this.initData (cmd, 0, [0, 0]);
 			this.doCommandCallback (this.status);
 			this.setMode (SD_STATUS_CURRENT_STATE_data);
 			return;
@@ -119,102 +113,88 @@ SD.prototype.doCommand = function (cmd, arg)
 
 };
 
-SD.prototype.doRead = function (sz)
-{
-	var sd = this;
-	var cmd = sd.dataCmd;
-
-	if (sd.dataArray)
-	{
-		while ((sd.dataOffset >> 2) < sd.dataArray.length && sz > 0)
-		{
-			sd.doReadCallback (sd.dataArray[sd.dataOffset >> 2]);
-			sd.dataOffset += 4;
-			sz -= 4;
-		}
-
-		if ((sd.dataOffset >> 2) == sd.dataArray.length)
-			sd.setMode (SD_STATUS_CURRENT_STATE_tran);
-	}
-	else
-	{
-		switch (cmd)
-		{
-			case NRM_CMD (18):
-				var obj = sd.backendPending;
-				var offset = sd.dataArg + sd.dataOffset;
-				var size = sz;
-				if (!(obj.read && obj.offset === offset && obj.size === size))
-				{
-					obj.aborted = true;
-					sd.backend.read (obj = sd.backendPending = {
-						read: true,
-						aborted: false,
-						offset: offset,
-						size: size,
-						callback: function (buf) {
-							if (obj.aborted)
-								return;
-							var arr = new Int32Array (buf);
-							for (var i = 0; i < arr.length; i++)
-								sd.doReadCallback (sd.system.swapIfNeeded (arr[i]));
-							sd.dataOffset += arr.length << 2;
-						}
-					});
-				}
-				break;
-			default:
-				throw new Error ("unknown read command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
-		}
-	}
-};
-
-SD.prototype.doWrite = function (heapoffset, sz)
-{
-	var sd = this;
-	var cmd = sd.dataCmd;
-
-	var inbuf = new Int32Array (sd.system.heap, heapoffset, sz >>> 2);
-	var outbuf = new Int32Array (sz >>> 2);
-	for (var i = 0; i < inbuf.length; i++)
-		outbuf[i] = sd.system.swapIfNeeded (inbuf[i]);
-
-	if (sd.dataArray)
-	{
-		throw new Error ("dataArray not used in writes");
-	}
-	else
-	{
-		switch (cmd)
-		{
-			case NRM_CMD (25):
-				var obj = sd.backendPending;
-				var offset = sd.dataArg + sd.dataOffset;
-				var size = sz;
-				if (!(obj.write && obj.offset === offset && obj.size === size))
-				{
-					obj.aborted = true;
-					sd.backend.write (obj = sd.backendPending = {
-						write: true,
-						aborted: false,
-						offset: offset,
-						size: size,
-						buffer: outbuf.buffer,
-						callback: function (sz) {
-							if (obj.aborted)
-								return;
-							sd.doWriteCallback (sz);
-							sd.dataOffset += sz;
-						}
-					});
-				}
-				break;
-			default:
-				throw new Error ("unknown write command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
-		}
-	}
+SD.prototype.initData = function (command, offset, array) {
+	this.dataCommand = command;
+	this.dataOffset = offset;
+	this.dataArray = array;
+	this.dataTransaction += 1;
 };
 
 SD.prototype.setMode = function (mode) {
 	this.status = this.status & ~SD_STATUS_CURRENT_STATE | mode;
+};
+
+SD.prototype.doRead = function (heapo, size) {
+	if (this.dataArray)
+	{
+		var inarr = this.dataArray;
+		var inptr = this.dataOffset;
+		var outarr = new Int32Array (system.heap, heapo, size >>> 2);
+		var outptr = 0; // also total bytes transferred
+
+		for (;inptr < (inarr.length << 2) && outptr < size; inptr += 4, outptr += 4)
+			outarr[outptr >>> 2] = inarr[inptr >>> 2];
+
+		this.dataOffset = inptr;
+		this.setMode (SD_STATUS_CURRENT_STATE_tran);
+		this.doReadCallback (outptr);
+	}
+	else if (this.dataCommand == NRM_CMD (18))
+	{
+		var sd = this;
+		var transaction = this.dataTransaction;
+		var source = new Int32Array (size >>> 2);
+		var target = new Int32Array (system.heap, heapo, size >>> 2);
+		var bytearray = new Uint8Array (source.buffer);
+
+		sd.backend.read (bytearray, sd.dataOffset, size, function (sz) {
+			if (sd.dataTransaction != transaction)
+			{
+				console.log ('=== READ ABORTED');
+				sz = 0;
+			}
+			for (var i = 0; i < (sz >>> 2); i++)
+				target[i] = sd.system.swapIfNeeded (source[i]);
+			sd.dataOffset += sz;
+			sd.setMode (SD_STATUS_CURRENT_STATE_tran);
+			sd.doReadCallback (sz);
+		});
+	}
+	else
+	{
+		throw new Error ("unknown read command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
+	}
+};
+
+SD.prototype.doWrite = function (heapo, size) {
+	if (this.dataArray)
+	{
+		throw new Error ("dataArray writes not supported!");
+	}
+	else if (this.dataCommand == NRM_CMD (25))
+	{
+		var sd = this;
+		var transaction = this.dataTransaction;
+		var source = new Int32Array (system.heap, heapo, size >>> 2);
+		var target = new Int32Array (size >>> 2);
+		var bytearray = new Uint8Array (target.buffer);
+
+		for (var i = 0; i < (size >>> 2); i++)
+			target[i] = sd.system.swapIfNeeded (source[i]);
+
+		sd.backend.write (bytearray, sd.dataOffset, size, function (sz) {
+			if (sd.dataTransaction != transaction)
+			{
+				console.log ('=== WRITE ABORTED');
+				sz = 0;
+			}
+			sd.dataOffset += sz;
+			sd.setMode (SD_STATUS_CURRENT_STATE_tran);
+			sd.doWriteCallback (sz);
+		});
+	}
+	else
+	{
+		throw new Error ("unknown write command: " + (cmd & 0x40 ? "A" : "") + "CMD" + (cmd & 0x3F));
+	}
 };
