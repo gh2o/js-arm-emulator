@@ -1,4 +1,5 @@
 #include "builtins.inc"
+#include "mmu.inc"
 
 #ifndef BUILTIN_TABLE
 #	if defined(INCLUDE_VARIABLES)
@@ -25,8 +26,53 @@ BUILTIN (memcpy)
 
 function _builtinFunc_memcpy ()
 {
-	bail (90819203);
-	return BUILTIN_IGNORED;
+	var dst = 0, src = 0, size = 0, tmp = 0;
+
+	dst = getRegister (REG_R0);
+	src = getRegister (REG_R1);
+	size = getRegister (REG_R2);
+
+	if (!((dst | src | size) & 0x03))
+	{
+		// copy data aligned
+		while (size)
+		{
+			tmp = readWord (src, 0);
+			if (memoryError)
+				bail (190823);
+
+			writeWord (dst, tmp, 0);
+			if (memoryError)
+				bail (190825);
+
+			dst = INT (dst + 4);
+			src = INT (src + 4);
+			size = INT (size - 4);
+		}
+	}
+	else
+	{
+		// copy data unaligned
+		while (size)
+		{
+			tmp = readByte (src, 0);
+			if (memoryError)
+				bail (190823);
+
+			writeByte (dst, tmp, 0);
+			if (memoryError)
+				bail (190825);
+
+			dst = INT (dst + 1);
+			src = INT (src + 1);
+			size = INT (size - 1);
+		}
+	}
+
+	// return from function
+	setRegister (REG_PC, getRegister (REG_LR));
+
+	return BUILTIN_COMPLETED;
 }
 
 function _builtinRun (pc)
