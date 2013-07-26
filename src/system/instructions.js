@@ -55,20 +55,6 @@ function _inst_DATA (opcode, Rd, Rn, immreg, shift_immreg, shift_type, S)
 	var carry = 0;
 	var result = 0;
 
-	/*
-	log (
-		LOG_ID, 496802,
-		LOG_HEX, INT (getPC () - 4),
-		LOG_SIGNED, INT (opcode),
-		LOG_SIGNED, INT (Rd),
-		LOG_SIGNED, INT (Rn),
-		LOG_HEX, INT (immreg),
-		LOG_HEX, INT (shift_immreg),
-		LOG_SIGNED, INT (shift_type),
-		LOG_SIGNED, INT (S)
-	);
-	*/
-
 	base = getRegister (Rn);
 	operand = DECODE_IMMEDIATE_REGISTER (immreg);
 	shift_operand = DECODE_IMMEDIATE_REGISTER (shift_immreg) & 0xFF;
