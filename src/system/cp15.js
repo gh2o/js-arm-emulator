@@ -4,7 +4,7 @@
 #define CP15_SCTLR_WRITABLE    (0x00002301)
 #define CP15_SCTLR_UNSUPPORTED (0xFFE0C480)
 
-#ifdef CP15_INCLUDE_VARIABLES
+#ifdef INCLUDE_VARIABLES
 var cp15_SCTLR = 0;
 var cp15_DACR = 0;
 var cp15_TTBR0 = 0;
@@ -12,7 +12,7 @@ var cp15_FSR = 0;
 var cp15_FAR = 0;
 #endif
 
-#ifdef CP15_INCLUDE_FUNCTIONS
+#ifdef INCLUDE_FUNCTIONS
 function _cp15_reset ()
 {
 	cp15_SCTLR = CP15_SCTLR_RESET;

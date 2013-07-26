@@ -21,7 +21,7 @@
 
 #define MCI_CMDR_SPCMD(x) ((x) >> 8 & 0x07)
 
-#ifdef PERIPHERALS_INCLUDE_VARIABLES
+#ifdef INCLUDE_VARIABLES
 var pAIC_SPU = 0;
 var pAIC_IMR = 0;
 var pAIC_IPR = 0;
@@ -66,7 +66,7 @@ var pMCI_TNCR = 0;
 var pMCI_PTSR = 0;
 #endif
 
-#ifdef PERIPHERALS_INCLUDE_FUNCTIONS
+#ifdef INCLUDE_FUNCTIONS
 function _readWordPeripheral (addr)
 {
 	PARAM_INT (addr);
@@ -829,7 +829,7 @@ function _pMCIWrite (offset, value)
 }
 #endif
 
-#ifdef PERIPHERALS_INCLUDE_TABLES
+#ifdef INCLUDE_TABLES
 
 #define und _undefinedPeripheralRead
 var systemPeripheralRead = [

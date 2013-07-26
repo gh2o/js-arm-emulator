@@ -47,7 +47,7 @@
 #endif
 #define DECODER_TABLE CONCAT_TOKENS(DECODER_FUNCTION,_table)
 
-#ifdef DECODER_INCLUDE_FUNCTIONS
+#ifdef INCLUDE_FUNCTIONS
 function DECODER_FUNCTION (inst)
 {
 	PARAM_INT (inst);
@@ -464,7 +464,7 @@ function SUBDECODER_FUNCTION (UND) (inst)
 
 #endif
 
-#ifdef DECODER_INCLUDE_TABLES
+#ifdef INCLUDE_TABLES
 #define _FILL16(x) x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x
 #define FILL16(x) _FILL16(SUBDECODER_FUNCTION(x))
 #define und SUBDECODER_FUNCTION(UND)

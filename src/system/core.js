@@ -37,13 +37,10 @@ function Core (stdlib, foreign, heap)
 	var _sdRead = foreign.sdRead;
 	var _sdWrite = foreign.sdWrite;
 
-#define CP15_INCLUDE_VARIABLES
+#define INCLUDE_VARIABLES
 #include "cp15.js"
-#undef CP15_INCLUDE_VARIABLES
-
-#define PERIPHERALS_INCLUDE_VARIABLES
 #include "peripherals.js"
-#undef PERIPHERALS_INCLUDE_VARIABLES
+#undef INCLUDE_VARIABLES
 
 	function _reset ()
 	{
@@ -297,31 +294,19 @@ function Core (stdlib, foreign, heap)
 		return STAT_OK;
 	}
 
+#define INCLUDE_FUNCTIONS
 #include "mmu.js"
-
-#define DECODER_INCLUDE_FUNCTIONS
 #include "decoder.js"
-#undef DECODER_INCLUDE_FUNCTIONS
-
 #include "instructions.js"
-
-#define CP15_INCLUDE_FUNCTIONS
 #include "cp15.js"
-#undef CP15_INCLUDE_FUNCTIONS
-
 #include "irq.js"
-
-#define PERIPHERALS_INCLUDE_FUNCTIONS
 #include "peripherals.js"
-#undef PERIPHERALS_INCLUDE_FUNCTIONS
+#undef INCLUDE_FUNCTIONS
 
-#define DECODER_INCLUDE_TABLES
+#define INCLUDE_TABLES
 #include "decoder.js"
-#undef DECODER_INCLUDE_TABLES
-
-#define PERIPHERALS_INCLUDE_TABLES
 #include "peripherals.js"
-#undef PERIPHERALS_INCLUDE_TABLES
+#undef INCLUDE_TABLES
 
 	return {
 		// general
