@@ -19,6 +19,7 @@
 
 #ifdef BUILTIN_TABLE
 BUILTIN (memcpy)
+BUILTIN (memset)
 #endif
 
 #ifndef BUILTIN_TABLE
@@ -39,11 +40,11 @@ function _builtinFunc_memcpy ()
 		{
 			tmp = readWord (src, 0);
 			if (memoryError)
-				bail (190823);
+				return BUILTIN_IGNORED;
 
 			writeWord (dst, tmp, 0);
 			if (memoryError)
-				bail (190825);
+				return BUILTIN_IGNORED;
 
 			dst = INT (dst + 4);
 			src = INT (src + 4);
@@ -57,14 +58,55 @@ function _builtinFunc_memcpy ()
 		{
 			tmp = readByte (src, 0);
 			if (memoryError)
-				bail (190823);
+				return BUILTIN_IGNORED;
 
 			writeByte (dst, tmp, 0);
 			if (memoryError)
-				bail (190825);
+				return BUILTIN_IGNORED;
 
 			dst = INT (dst + 1);
 			src = INT (src + 1);
+			size = INT (size - 1);
+		}
+	}
+
+	// return from function
+	setRegister (REG_PC, getRegister (REG_LR));
+
+	return BUILTIN_COMPLETED;
+}
+
+function _builtinFunc_memset ()
+{
+	var mem = 0, bt = 0, size = 0;
+	mem = getRegister (REG_R0);
+	bt = getRegister (REG_R1) & 0xFF;
+	size = getRegister (REG_R2);
+
+	if (!((mem | size) & 0x03))
+	{
+		// aligned
+		bt = (bt << 24) | (bt << 16) | (bt << 8) | bt;
+		while (size)
+		{
+			writeWord (mem, bt, 0);
+			if (memoryError)
+				return BUILTIN_IGNORED;
+
+			mem = INT (mem + 4);
+			size = INT (size - 4);
+		}
+	}
+	else
+	{
+		// unaligned
+		while (size)
+		{
+			writeByte (mem, bt, 0);
+			if (memoryError)
+				return BUILTIN_IGNORED;
+
+			mem = INT (mem + 1);
 			size = INT (size - 1);
 		}
 	}
