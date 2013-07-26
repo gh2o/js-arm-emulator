@@ -439,7 +439,7 @@ function _pPMCRead (offset)
 	{
 		case 0x24: // CKGR_MCFR
 			memoryError = STAT_OK;
-			return (1 << 16) | 512;
+			return (1 << 16) | 3906;
 		case 0x28: // CKGR_PLLAR
 		case 0x2C: // CKGR_PLLBR
 			memoryError = STAT_OK;
