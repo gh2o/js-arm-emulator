@@ -106,8 +106,18 @@ System.prototype.loadMap = function (mbuf) {
 		line = line.trim ();
 
 		var tup = line.split (' ');
-		switch (tup[2])
+		var addr = parseInt (tup[0], 16);
+		var func = tup[2];
+
+		switch (func)
 		{
+#define BUILTIN(x) case #x:
+#define BUILTIN_TABLE
+#include "system/builtins.js"
+#undef BUILTIN_TABLE
+#undef BUILTIN
+				this.core["builtinSet_" + func](addr);
+				break;
 		}
 	}
 };

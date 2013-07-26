@@ -236,6 +236,11 @@ function Core (stdlib, foreign, heap)
 			// advance program counter before execution
 			setPC (INT (pc + 4));
 
+			// try using builtin
+			stat = builtinRun (pc);
+			if (S32 (stat) == BUILTIN_COMPLETED)
+				continue;
+
 			// execute the instruction
 			stat = execute (inst);
 			switch (S32 (stat))
