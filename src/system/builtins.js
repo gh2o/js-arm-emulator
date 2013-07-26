@@ -83,35 +83,47 @@ function _builtinFunc_memset ()
 	mem = getRegister (REG_R0);
 	bt = getRegister (REG_R1) & 0xFF;
 	size = getRegister (REG_R2);
+	
+	// initialize bt
+	bt = bt | (bt << 8);
+	bt = bt | (bt << 16);
 
-	if (!((mem | size) & 0x03))
+	// unaligned
+	while (size)
 	{
-		// aligned
-		bt = (bt << 24) | (bt << 16) | (bt << 8) | bt;
-		while (size)
-		{
-			writeWord (mem, bt, 0);
-			if (memoryError)
-				return BUILTIN_IGNORED;
+		if (!(mem & 0x03)) // continue if aligned
+			break;
 
-			mem = INT (mem + 4);
-			size = INT (size - 4);
-		}
-	}
-	else
-	{
-		// unaligned
-		while (size)
-		{
-			writeByte (mem, bt, 0);
-			if (memoryError)
-				return BUILTIN_IGNORED;
+		writeByte (mem, bt, 0);
+		if (memoryError)
+			return BUILTIN_IGNORED;
 
-			mem = INT (mem + 1);
-			size = INT (size - 1);
-		}
+		mem = INT (mem + 1);
+		size = INT (size - 1);
 	}
 
+	// aligned
+	while (size & ~0x03)
+	{
+		writeWord (mem, bt, 0);
+		if (memoryError)
+			return BUILTIN_IGNORED;
+
+		mem = INT (mem + 4);
+		size = INT (size - 4);
+	}
+
+	// unaligned
+	while (size)
+	{
+		writeByte (mem, bt, 0);
+		if (memoryError)
+			return BUILTIN_IGNORED;
+
+		mem = INT (mem + 1);
+		size = INT (size - 1);
+	}
+	
 	// return from function
 	setRegister (REG_PC, getRegister (REG_LR));
 
