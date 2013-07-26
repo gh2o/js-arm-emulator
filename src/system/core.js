@@ -40,6 +40,7 @@ function Core (stdlib, foreign, heap)
 #define INCLUDE_VARIABLES
 #include "cp15.js"
 #include "peripherals.js"
+#include "builtins.js"
 #undef INCLUDE_VARIABLES
 
 	function _reset ()
@@ -301,6 +302,7 @@ function Core (stdlib, foreign, heap)
 #include "cp15.js"
 #include "irq.js"
 #include "peripherals.js"
+#include "builtins.js"
 #undef INCLUDE_FUNCTIONS
 
 #define INCLUDE_TABLES
@@ -319,6 +321,7 @@ function Core (stdlib, foreign, heap)
 		reset: _reset,
 #define INCLUDE_EXPORTS
 #include "peripherals.js"
+#include "builtins.js"
 #undef INCLUDE_EXPORTS
 		run: _run
 	};
