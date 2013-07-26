@@ -2,7 +2,8 @@
 
 var neededFiles = {
 	kernel: {path: "resources/kernelimage"},
-	devicetree: {path: "resources/devicetree.dtb"}
+	devicetree: {path: "resources/devicetree.dtb"},
+	map: {path: "resources/kernelmap"}
 };
 
 var fs = require ('fs');
@@ -50,11 +51,14 @@ SDBackend.prototype.write = function (bytearray, offset, size, callback)
 }
 
 var system;
+system = new System (null, new SDBackend ());
 
 // copy kernel into memory
-system = new System (null, new SDBackend ());
 system.loadImage (neededFiles.kernel.buffer, 0x20008000);
 system.loadImage (neededFiles.devicetree.buffer, 0x21000000);
+
+// load map for overrides
+system.loadMap (neededFiles.map.buffer);
 
 // input routine
 process.stdin.setRawMode (true);

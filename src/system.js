@@ -92,6 +92,26 @@ System.prototype.loadImage = function (image, address) {
 		target[i] = this.swapIfNeeded (source[i]);
 };
 
+System.prototype.loadMap = function (mbuf) {
+	var marr = new Uint8Array (mbuf);
+	var mptr = 0;
+	while (mptr < marr.length)
+	{
+		var nxtptr = mptr;
+		while (marr[nxtptr++] != 0x0A)
+			if (nxtptr >= marr.length)
+				break;
+
+		var line = String.fromCharCode.apply (null, marr.subarray (mptr, mptr = nxtptr));
+		line = line.trim ();
+
+		var tup = line.split (' ');
+		switch (tup[2])
+		{
+		}
+	}
+};
+
 System.prototype.onOutput = function () {
 	throw new Error ("override onOutput!");
 };
