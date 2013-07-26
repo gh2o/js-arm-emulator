@@ -317,7 +317,7 @@ function _pDBGUGetSR (update)
 	PARAM_INT (update);
 
 	var ret = 0x0202; // TXRDY and TXEMPTY
-	ret = ret | (pDBGU_inputStart != pDBGU_inputEnd); // RXRDY
+	ret = ret | (S32 (pDBGU_inputStart) != S32 (pDBGU_inputEnd)); // RXRDY
 
 	return INT (ret);
 }
@@ -328,7 +328,7 @@ function _pDBGUInput (c)
 
 	if (INT (pDBGU_inputEnd - pDBGU_inputStart + 1) < SIZE_DBGU_INPUT_BUFFER)
 	{
-		byteView[ADDR_DBGU_INPUT_BUFFER + (pDBGU_inputEnd & MASK_DBGU_INPUT_BUFFER)] = c;
+		byteView[INT (ADDR_DBGU_INPUT_BUFFER + (pDBGU_inputEnd & MASK_DBGU_INPUT_BUFFER))] = c;
 		pDBGU_inputEnd = INT (pDBGU_inputEnd + 1);
 	}
 	else
@@ -359,7 +359,7 @@ function _pDBGURead (offset)
 			memoryError = STAT_OK;
 			if (S32 (pDBGU_inputEnd - pDBGU_inputStart) > 0)
 			{
-				tmp = INT (byteView[ADDR_DBGU_INPUT_BUFFER + (pDBGU_inputStart & MASK_DBGU_INPUT_BUFFER)]);
+				tmp = INT (byteView[INT (ADDR_DBGU_INPUT_BUFFER + (pDBGU_inputStart & MASK_DBGU_INPUT_BUFFER))]);
 				pDBGU_inputStart = INT (pDBGU_inputStart + 1);
 				return INT (tmp);
 			}
@@ -382,7 +382,7 @@ function _pDBGURead (offset)
 			return INT (pDBGU_PTSR);
 	}
 
-	log (LOG_ID, 19083921, LOG_HEX, offset);
+	log (LOG_ID, 19083921, LOG_HEX, S32 (offset));
 	bail (19083921);
 	return 0;
 }
@@ -424,7 +424,7 @@ function _pDBGUWrite (offset, value)
 	}
 
 
-	log (LOG_ID, 39083927, LOG_HEX, offset, LOG_HEX, value);
+	log (LOG_ID, 39083927, LOG_HEX, S32 (offset), LOG_HEX, S32 (value));
 	bail (39083927);
 
 }
@@ -631,7 +631,7 @@ function _pMCIReadCallback (sz)
 	pMCI_RCR = INT (pMCI_RCR - (sz >> 2));
 
 	pMCI_CMDR_pending = 0;
-	pMCI_SR |= 0x8;
+	pMCI_SR = pMCI_SR | 0x8;
 	if (MCI_CMDR_TRTYP (pMCI_CMDR_transfer) == MCI_CMDR_TRTYP_SINGLE_BLOCK)
 		pMCI_CMDR_transfer = 0;
 }
@@ -643,7 +643,7 @@ function _pMCIWriteCallback (sz)
 	pMCI_TCR = INT (pMCI_TCR - (sz >> 2));
 
 	pMCI_CMDR_pending = 0;
-	pMCI_SR |= 0x8;
+	pMCI_SR = pMCI_SR | 0x8;
 	if (MCI_CMDR_TRTYP (pMCI_CMDR_transfer) == MCI_CMDR_TRTYP_SINGLE_BLOCK)
 		pMCI_CMDR_transfer = 0;
 }
@@ -667,7 +667,7 @@ function _pMCIRunCommand (cmdr)
 			break;
 	}
 
-	sdCommand (cmdr & 0x3F, pMCI_ARGR);
+	sdCommand (cmdr & 0x3F, INT (pMCI_ARGR));
 }
 
 function _pMCIRunDMA ()
@@ -716,7 +716,7 @@ function _pMCIGetSR (update)
 	ret = ret | !(pMCI_RCR | pMCI_RNCR) << 14; // RXBUFF
 	ret = ret | !(pMCI_TCR | pMCI_TNCR) << 15; // TXBUFE
 	ret = ret | !pMCI_CMDR_pending << 5; // NOTBUSY
-	pMCI_SR &= ~0x8;
+	pMCI_SR = pMCI_SR & ~0x8;
 
 	return INT (ret);
 }
