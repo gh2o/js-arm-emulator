@@ -20,6 +20,7 @@
 #ifdef BUILTIN_TABLE
 BUILTIN (memcpy)
 BUILTIN (memset)
+BUILTIN (__memzero)
 BUILTIN (strlen)
 #endif
 
@@ -77,14 +78,14 @@ function _builtinFunc_memcpy ()
 	return BUILTIN_COMPLETED;
 }
 
-function _builtinFunc_memset ()
+function _builtinFunc_memset_common (mem, bt, size)
 {
-	var mem = 0, bt = 0, size = 0;
-	mem = getRegister (REG_R0);
-	bt = getRegister (REG_R1) & 0xFF;
-	size = getRegister (REG_R2);
+	PARAM_INT (mem);
+	PARAM_INT (bt);
+	PARAM_INT (size);
 	
 	// initialize bt
+	bt = bt & 0xFF;
 	bt = bt | (bt << 8);
 	bt = bt | (bt << 16);
 
@@ -128,6 +129,24 @@ function _builtinFunc_memset ()
 	setRegister (REG_PC, getRegister (REG_LR));
 
 	return BUILTIN_COMPLETED;
+}
+
+function _builtinFunc_memset ()
+{
+	return INT (_builtinFunc_memset_common (
+		getRegister (REG_R0),
+		getRegister (REG_R1),
+		getRegister (REG_R2)
+	));
+}
+
+function _builtinFunc___memzero ()
+{
+	return INT (_builtinFunc_memset_common (
+		getRegister (REG_R0),
+		0,
+		getRegister (REG_R1)
+	));
 }
 
 function _builtinFunc_strlen ()
