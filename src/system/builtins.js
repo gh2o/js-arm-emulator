@@ -20,6 +20,7 @@
 #ifdef BUILTIN_TABLE
 BUILTIN (memcpy)
 BUILTIN (memset)
+BUILTIN (strlen)
 #endif
 
 #ifndef BUILTIN_TABLE
@@ -115,6 +116,54 @@ function _builtinFunc_memset ()
 	setRegister (REG_PC, getRegister (REG_LR));
 
 	return BUILTIN_COMPLETED;
+}
+
+function _builtinFunc_strlen ()
+{
+	var base = 0, ptr = 0, tmp = 1;
+	base = getRegister (REG_R0);
+	ptr = base;
+
+	// get aligned
+	while (ptr & 0x03)
+	{
+		tmp = readByte (ptr, 0);
+		if (memoryError)
+			return BUILTIN_IGNORED;
+
+		if (!tmp)
+		{
+			setRegister (REG_R0, INT (ptr - base));
+			setRegister (REG_PC, getRegister (REG_LR));
+			return BUILTIN_COMPLETED;
+		}
+
+		ptr = INT (ptr + 1);
+	}
+
+	// aligned
+	while (1)
+	{
+		if (!(ptr & 0x03))
+		{
+			tmp = readWord (ptr, 0);
+			if (memoryError)
+				return BUILTIN_IGNORED;
+		}
+
+		if (!(tmp & 0xFF))
+		{
+			setRegister (REG_R0, INT (ptr - base));
+			setRegister (REG_PC, getRegister (REG_LR));
+			return BUILTIN_COMPLETED;
+		}
+
+		ptr = INT (ptr + 1);
+		tmp = tmp >>> 8;
+	}
+
+	// dummy
+	return BUILTIN_IGNORED;
 }
 
 function _builtinRun (pc)
