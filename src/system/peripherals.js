@@ -942,3 +942,12 @@ var userPeripheralWrite = [
 #undef und
 
 #endif
+
+#ifdef INCLUDE_EXPORTS
+	// SD
+	sdCommandCallback: _pMCICommandCallback,
+	sdReadCallback: _pMCIReadCallback,
+	sdWriteCallback: _pMCIWriteCallback,
+	// DBGU
+	onInput: _pDBGUInput,
+#endif

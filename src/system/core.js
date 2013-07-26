@@ -317,12 +317,9 @@ function Core (stdlib, foreign, heap)
 		getCPSR: _getCPSR,
 		setCPSR: _setCPSR,
 		reset: _reset,
-		run: _run,
-		// SD
-		sdCommandCallback: _pMCICommandCallback,
-		sdReadCallback: _pMCIReadCallback,
-		sdWriteCallback: _pMCIWriteCallback,
-		// DBGU
-		onInput: _pDBGUInput,
+#define INCLUDE_EXPORTS
+#include "peripherals.js"
+#undef INCLUDE_EXPORTS
+		run: _run
 	};
 }
