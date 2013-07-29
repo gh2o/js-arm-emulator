@@ -8,7 +8,7 @@
 	interrupt-parent = <&aic>;
 
 	chosen {
-		bootargs = "earlyprintk console=ttyS0 root=/dev/mmcblk0 rootfstype=ext4 rw rootwait init=/bin/bash";
+		bootargs = "earlyprintk console=ttyS0 root=/dev/mmcblk0 rootfstype=ext4 rootwait";
 	};
 
 	cpus {
